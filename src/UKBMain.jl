@@ -62,6 +62,7 @@ function decode(parsed_args)
 
     columns = first_instance_fields(datasetfile)
     dataset = CSV.read(datasetfile, DataFrame, select=columns)
+    rename!(dataset, :eid => :SAMPLE_ID)
 
     fields = CSV.read(fieldsfile, DataFrame)
     

@@ -75,8 +75,8 @@ end
     )
     decode(parsed_args)
     output = CSV.read(parsed_args["out"], DataFrame)
-    @test names(output) == ["eid", "21003-0.0", "22001-0.0"]
-    @test output[:, "eid"] isa Vector{Int}
+    @test names(output) == ["SAMPLE_ID", "21003-0.0", "22001-0.0"]
+    @test output[:, "SAMPLE_ID"] isa Vector{Int}
     @test output[:, "21003-0.0"] isa Vector{Int}
     @test output[:, "22001-0.0"] isa Vector{Union{Bool, Missing}}
 
