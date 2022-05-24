@@ -74,5 +74,12 @@ function decode(parsed_args)
     CSV.write(outfile, dataset)
 end
 
-export decode
+function csvmerge(parsed_args)
+    csv₁ = CSV.read(parsed_args["csv1"], DataFrame)
+    csv₂ = CSV.read(parsed_args["csv2"], DataFrame)
+    CSV.write(parsed_args["out"], innerjoin(csv₁, csv₂, on=:SAMPLE_ID))
+end
+
+export decode, csvmerge
+
 end

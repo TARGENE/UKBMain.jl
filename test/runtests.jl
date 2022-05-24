@@ -82,3 +82,31 @@ end
 
     rm(parsed_args["out"])
 end
+
+@testset "Test csvmerge" begin
+    CSV. write("test_csv1.csv",
+        DataFrame(SAMPLE_ID=[1,2,3], COL1=[1., 2., 3.])
+    )
+    CSV. write("test_csv2.csv",
+        DataFrame(SAMPLE_ID=[4,3,2], COL2=[1., 2., 3.])
+    )
+
+    parsed_args = Dict(
+        "csv1" => "test_csv1.csv",
+        "csv2" => "test_csv2.csv",
+        "out" => "test_out.csv"
+    )
+    csvmerge(parsed_args)
+
+    out = CSV.read(parsed_args["out"], DataFrame)
+
+    @test out == DataFrame(
+        SAMPLE_ID = [3, 2],
+        COL1      = [3., 2.],
+        COL2      = [2., 3.]
+    )
+    
+    for file in values(parsed_args)
+        rm(file)
+    end
+end
