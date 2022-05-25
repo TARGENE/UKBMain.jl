@@ -1,6 +1,10 @@
 module UKBMain
 using CSV
 using DataFrames
+using CategoricalArrays
+using MLJModels
+using MLJModelInterface
+using MLJBase
 
 """
     field_metadata(fields::DataFrame, field_id::Int)
@@ -38,12 +42,26 @@ function convertcolumn(column::Vector{T₁}, ::Type{T₂}) where {T₁, T₂}
     convert(Vector{T₂}, column)
 end
 
+function convertcolumn(column::Vector, ::Type{CategoricalValue}, colname)
+    model = OneHotEncoder(drop_last=false)
+    X = NamedTuple{(Symbol(colname),)}([categorical(column),])
+    fitresult, _, _ = MLJModelInterface.fit(model, 0, X)
+    return MLJModelInterface.transform(model, fitresult, X)
+end
+
 function process!(dataset, colname, field_metadata)
     column = dataset[:, colname]
     if field_metadata.value_type == 11
         dataset[!, colname] = convertcolumn(column, Int)
-    elseif field_metadata.value_type == 21
+    elseif field_metadata.value_type == 21 && Set(unique(skipmissing(column))) == Set([0, 1])
+        println(colname)
         dataset[!, colname] = convertcolumn(column, Bool)
+    elseif field_metadata.value_type == 21
+        select!(dataset, Not(colname))
+        encoded = convertcolumn(column, CategoricalValue, colname)
+        for key in keys(encoded)
+            dataset[!, key] = getproperty(encoded, key)
+        end
     end
 end
 

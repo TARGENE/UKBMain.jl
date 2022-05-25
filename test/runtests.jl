@@ -8,7 +8,7 @@ const FIELDSFILE = joinpath("data", "field.txt")
 
 @testset "Test first_instance_fields" begin
     columns = UKBMain.first_instance_fields(DATASETFILE)
-    @test columns == ["eid", "21003-0.0", "22001-0.0"]
+    @test columns == ["eid", "21000-0.0", "21003-0.0", "22001-0.0"]
 end
 
 @testset "Test field_metadata" begin
@@ -30,11 +30,13 @@ end
         "21003-2.0" => [64., 32, missing, 11],
         "22001-0.0" => [1, 0, 1, missing],
         "22001-1.0" => [1, 0, 1, 0],
-        "22001-2.0" => [1, 0, 1, 1.]
+        "22001-2.0" => [1, 0, 1, 1.],
+        "21000-0.0" => [1001, -2, missing, 2]
         ))
 
     age_meta = UKBMain.field_metadata(fields_meta, 21003)
     sex_meta = UKBMain.field_metadata(fields_meta, 22001)
+    ethnicity_meta = UKBMain.field_metadata(fields_meta, 21000)
     # First column
     @test eltype(dataset[!, "21003-0.0"]) === Float64
     UKBMain.process!(dataset, "21003-0.0", age_meta)
@@ -65,6 +67,13 @@ end
     UKBMain.process!(dataset, "22001-2.0", sex_meta)
     @test eltype(dataset[!, "22001-2.0"]) === Bool
 
+    # Seventh column
+    @test eltype(dataset[!, "21000-0.0"]) === Union{Missing, Int64}
+    UKBMain.process!(dataset, "21000-0.0", ethnicity_meta)
+    @test isequal(dataset[!, "21000-0.0__-2"], [0., 1., missing, 0.])
+    @test isequal(dataset[!, "21000-0.0__2"], [0., 0., missing, 1.])
+    @test isequal(dataset[!, "21000-0.0__1001"], [1., 0., missing, 0.])
+    @test "21000-0.0" ∉ names(dataset)
 end
 
 @testset "Test decode" begin
@@ -75,7 +84,18 @@ end
     )
     decode(parsed_args)
     output = CSV.read(parsed_args["out"], DataFrame)
-    @test names(output) == ["SAMPLE_ID", "21003-0.0", "22001-0.0"]
+    @test names(output) == ["SAMPLE_ID"
+                            "21003-0.0"
+                            "22001-0.0"
+                            "21000-0.0__-3"
+                            "21000-0.0__-1"
+                            "21000-0.0__1"
+                            "21000-0.0__2"
+                            "21000-0.0__6"
+                            "21000-0.0__1001"
+                            "21000-0.0__1003"
+                            "21000-0.0__2002"
+                            "21000-0.0__4002"]
     @test output[:, "SAMPLE_ID"] isa Vector{Int}
     @test output[:, "21003-0.0"] isa Vector{Int}
     @test output[:, "22001-0.0"] isa Vector{Union{Bool, Missing}}
