@@ -5,6 +5,8 @@ using CategoricalArrays
 using MLJModels
 using MLJModelInterface
 using MLJBase
+using HTTP
+using Downloads
 
 """
     field_metadata(fields::DataFrame, field_id::Int)
