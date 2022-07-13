@@ -3,6 +3,14 @@ using Test
 using CSV
 using DataFrames
 
+fields_metadata_file = "fields_metadata.txt"
+download_fields_metadata(output=fields_metadata_file)
+fields_metadata = CSV.read(fields_metadata_file, DataFrame)
+
+coding_6_file = "ukb_datacoding_6.tsv"
+download_datacoding_6(output=coding_6_file)
+coding_6 = CSV.read(coding_6_file, DataFrame)
+
 const DATASETFILE = joinpath("data", "data.csv")
 const FIELDSFILE = joinpath("data", "field.txt")
 
@@ -129,4 +137,16 @@ end
     for file in values(parsed_args)
         rm(file)
     end
+end
+
+@testset "Test main" begin
+    parsed_args = Dict(
+        "dataset" => DATASETFILE,
+        "out-prefix" => "processed",
+        "confounders" => joinpath("config", "confounders.txt"),
+        "covariates" => joinpath("config", "covariates.txt"),
+        "phenotypes" => joinpath("config", "phenotypes.txt"),
+        "treatments" => joinpath("config", "treatments.txt"),
+    )
+
 end

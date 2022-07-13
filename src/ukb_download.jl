@@ -1,6 +1,9 @@
 download_fields_metadata(;output="fields_metadata.txt") = 
     Downloads.download("biobank.ndph.ox.ac.uk/ukb/scdown.cgi?fmt=txt&id=1", output)
 
+read_fields_metadata(;input="fields_metadata.txt") =
+    CSV.read(input, DataFrame)
+
 function download_datacoding_6(;output="ukb_datacoding_6.tsv")
     open(output, "w") do io
         HTTP.post(
@@ -26,3 +29,6 @@ function download_datacoding_6(;output="ukb_datacoding_6.tsv")
         )
     end
 end
+
+read_datacoding_6(;input="ukb_datacoding_6.tsv") =
+    CSV.read(input, DataFrame)

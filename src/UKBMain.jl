@@ -64,6 +64,8 @@ function process!(dataset, colname, field_metadata)
         for key in keys(encoded)
             dataset[!, key] = getproperty(encoded, key)
         end
+    elseif field_metadata.value_type == 22
+
     end
 end
 
@@ -98,6 +100,33 @@ function csvmerge(parsed_args)
     csv₁ = CSV.read(parsed_args["csv1"], DataFrame)
     csv₂ = CSV.read(parsed_args["csv2"], DataFrame)
     CSV.write(parsed_args["out"], innerjoin(csv₁, csv₂, on=:SAMPLE_ID))
+end
+
+function fields_roles(parsed_args)
+    for role in ("covariates", "confounders", "phenotypes", "treatments")
+
+    end
+end
+
+function main(parsed_args)
+    # Download and read fields metadata
+    download_fields_metadata()
+    fields_metadata = read_fields_metadata()
+
+    # Download and read data codings
+    download_datacoding_6()
+    coding_6 = read_datacoding_6()
+
+    # Read dataset
+    dataset = CSV.read(parsed_args["dataset"], DataFrame)
+
+    fieldsfile = parsed_args["fields"]
+    outfile = parsed_args["out"]
+
+    for field in all_fields
+
+    end
+
 end
 
 export decode, csvmerge
