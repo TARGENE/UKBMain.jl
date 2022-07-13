@@ -30,5 +30,8 @@ function download_datacoding_6(;output="ukb_datacoding_6.tsv")
     end
 end
 
-read_datacoding_6(;input="ukb_datacoding_6.tsv") =
-    CSV.read(input, DataFrame)
+function read_datacoding_6(;input="ukb_datacoding_6.tsv")
+    data = CSV.read(input, DataFrame)
+    data = filter(:coding => !=(-1), data)
+    return data[:, [:coding, :meaning]]
+end

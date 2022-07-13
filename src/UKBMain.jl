@@ -7,13 +7,15 @@ using MLJModelInterface
 using MLJBase
 using HTTP
 using Downloads
+using DelimitedFiles
+using SparseArrays
 
 """
     field_metadata(fields::DataFrame, field_id::Int)
 
 Retrieves the row corresponding to `field_id` from the metadata Dataframe `fields`.
 """
-function field_metadata(fields::DataFrame, field_id::Int)
+function fieldmetadata(fields::DataFrame, field_id::Int)
     row_id = findfirst(x -> x.field_id == field_id, eachrow(fields))
     return fields[row_id, :]
 end
@@ -102,13 +104,58 @@ function csvmerge(parsed_args)
     CSV.write(parsed_args["out"], innerjoin(csv₁, csv₂, on=:SAMPLE_ID))
 end
 
-function fields_roles(parsed_args)
+function fieldsroles(parsed_args)
+    roles_to_fields = Dict()
     for role in ("covariates", "confounders", "phenotypes", "treatments")
+        if parsed_args[role] !== nothing
+            roles_to_fields[role] = readdlm(parsed_args[role], Int)
+        end
+    end
+    return roles_to_fields
+end
+
+function read_dataset(dataset_file::String, subset_file::Nothing)
+    return CSV.read(dataset_file, DataFrame)
+end
+
+function read_dataset(dataset_file::String, subset_file::String)
+    dataset = CSV.read(parsed_args["dataset"], DataFrame)
+    subset = JSON.parse(parsed_args["subset"];)
+    return dataset
+end
+
+function extract_from_field(dataset, field_metadata, coding)
+    # Categorical Multiple values
+    if field_metadata.value_type == 22
+        # for each individual we list all traits that were diagnosed
+        # for at least one of the assessment visit 
+        n = nrows(dataset)
+        p = nrows(coding)
+        output = spzeros(Bool, n, p)
+        field_id = field_metadata.field_id
+        value_to_index = Dict(val => i for (i, val) in  enumerate(coding.coding))
+        field_columns = filter(x -> startswith(x, string(field_id)), names(dataset))
+        
+        for colname in field_columns
+            column = dataset[!, colname]
+            for index in eachindex(column)
+                value = getindex(column, index)
+                if value !== missing
+                    output[index, value_to_index[value]] = 1
+                end
+            end
+        end
+
+        return DataFrame(collect(output), string.(field_id, "-", coding.coding))
 
     end
 end
 
 function main(parsed_args)
+
+    # Read queried fields
+    roles_to_fields = fieldsroles(parsed_args)
+
     # Download and read fields metadata
     download_fields_metadata()
     fields_metadata = read_fields_metadata()
@@ -118,17 +165,21 @@ function main(parsed_args)
     coding_6 = read_datacoding_6()
 
     # Read dataset
-    dataset = CSV.read(parsed_args["dataset"], DataFrame)
-
-    fieldsfile = parsed_args["fields"]
-    outfile = parsed_args["out"]
-
-    for field in all_fields
-
+    dataset = read_dataset(parsed_args["dataset"], parsed_args["subset"])
+    
+    for (role, fields) in roles_to_fields
+        output = DataFrame()
+        for field in fields
+            field_metadata = fieldmetadata(fields_metadata, field)
+            field_output = extract_from_field(dataset, field_metadata, coding_6)
+            output = hcat(output, field_output)
+        end
+        outfile = string(parsed_args["out-prefix"], ".", role, ".csv")
+        CSV.write(outfile, output)
     end
 
 end
 
-export decode, csvmerge
+export decode, csvmerge, main
 
 end
