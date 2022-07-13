@@ -124,6 +124,7 @@ function read_dataset(dataset_file::String, subset_file::String)
     return dataset
 end
 
+
 function extract_from_field(dataset, field_metadata, coding)
     # Categorical Multiple values
     if field_metadata.value_type == 22
@@ -136,6 +137,11 @@ function extract_from_field(dataset, field_metadata, coding)
         value_to_index = Dict(val => i for (i, val) in  enumerate(coding.coding))
         field_columns = filter(x -> startswith(x, string(field_id)), names(dataset))
         
+        values = Set([])
+        for colname in field_columns
+            values = union!(values, unique(skipmissing(dataset[!, colname])))
+        end
+
         for colname in field_columns
             column = dataset[!, colname]
             for index in eachindex(column)
@@ -161,8 +167,7 @@ function main(parsed_args)
     fields_metadata = read_fields_metadata()
 
     # Download and read data codings
-    download_datacoding_6()
-    coding_6 = read_datacoding_6()
+    codings = download_and_read_codings()
 
     # Read dataset
     dataset = read_dataset(parsed_args["dataset"], parsed_args["subset"])
@@ -171,7 +176,8 @@ function main(parsed_args)
         output = DataFrame()
         for field in fields
             field_metadata = fieldmetadata(fields_metadata, field)
-            field_output = extract_from_field(dataset, field_metadata, coding_6)
+            coding = codings[field_metadata.encoding_id]
+            field_output = extract_from_field(dataset, field_metadata, coding)
             output = hcat(output, field_output)
         end
         outfile = string(parsed_args["out-prefix"], ".", role, ".csv")
