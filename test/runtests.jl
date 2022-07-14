@@ -143,11 +143,7 @@ end
     parsed_args = Dict(
         "dataset" => "/home/s2042526/UK-BioBank-53116/phenotypes/output.csv",
         "out-prefix" => "processed",
-        "confounders" => joinpath("config", "confounders.txt"),
-        "covariates" => joinpath("config", "covariates.txt"),
-        "phenotypes" => joinpath("config", "phenotypes.txt"),
-        "treatments" => joinpath("config", "treatments.txt"),
-        "subset" => nothing
+        "conf" => joinpath("config", "config.yaml"),
     )
     
 

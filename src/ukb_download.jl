@@ -75,3 +75,14 @@ function download_and_read_codings()
 
     return Dict(6=>read_datacoding_6(), 19 => read_datacoding_19())
 end
+
+
+for parent_field in subfields
+    gp = filter(x->x.parent_id == parent_field, data)
+    if size(gp, 1) == 0
+        continue
+    end
+    println("- name: ", parent_field)
+    println("  or: ", gp.coding)
+    #break
+end
