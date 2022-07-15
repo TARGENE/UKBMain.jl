@@ -12,6 +12,7 @@ using SparseArrays
 using YAML
 
 include("fields_list.jl")
+include("ukb_download.jl")
 
 export build_fields_list, csvmerge
 

@@ -1,32 +1,86 @@
-function process_22(dataset, entry)
-    # for each individual we list all traits that were diagnosed
-    # for at least one of the assessment visit 
-    n = nrows(dataset)
-    p = nrows(subfields)
-    output = spzeros(Bool, n, p)
 
-    field_id = field_metadata.field_id
-    value_to_index = Dict(val => i for (i, val) in  enumerate(subfields))
-    field_columns = filter(x -> startswith(x, string(field_id)), names(dataset))
+function check_categorical_entries(entry)
+    @assert isa(entry, Dict) "Required `codings` key for entry: $(entry)"
+    @assert haskey(entry, "codings") "Required `codings` key for entry: $(entry.field)"
+end
 
-    for colname in field_columns
-        column = dataset[!, colname]
-        for index in eachindex(column)
-            value = getindex(column, index)
-            if haskey(value_to_index, value)
-                output[index, value_to_index[value]] = 1
+function update_phenotypes_and_indices!(phenotypes::Vector, indices::Dict, ncols::Vector{Int64}, element) 
+    push!(phenotypes, element)
+    indices[element] = ncols[1]
+    ncols[1] += 1
+end
+
+function update_phenotypes_and_indices!(phenotypes::Vector, indices::Dict, ncols::Vector{Int64}, element::Vector)
+    for elem in element
+        update_phenotypes_and_indices!(phenotypes, indices, ncols, elem)
+    end
+end
+
+function update_phenotypes_and_indices!(phenotypes::Vector, indices::Dict, ncols::Vector{Int64}, element::Dict) 
+    @assert(all(haskey(element, key) for key in ("any", "name")),
+            "Codings with attributes are restricted to or statements having both `any` and `name` keys.")
+    
+    push!(phenotypes, element["name"])
+    for val in element["any"]
+        indices[val] = ncols[1]
+    end
+    ncols[1] += 1
+end
+
+function phenotypes_and_indices(codings::Vector)
+    phenotypes = []
+    indices = Dict()
+    ncols = [1]
+    for element in codings
+        update_phenotypes_and_indices!(phenotypes, indices, ncols, element)
+    end
+
+    return phenotypes, indices
+end
+
+"""
+`codings` is a single value
+"""
+function phenotypes_and_indices(codings)
+    return [codings], Dict(codings => 1)
+end
+
+
+get_field_ids(field_id::String) = parse.(Int, split(entry["field"], " | "))
+get_field_ids(field_id::Int) = [field_id]
+
+function process_categorical(dataset, entry)
+    check_categorical_entries(entry)
+    phenotypes, indices = phenotypes_and_indices(entry["codings"])
+
+    output = spzeros(Bool, nrows(dataset), size(phenotypes, 1))
+
+    field_ids = get_field_ids(entry["field"])
+
+    # This loop ensure that if the trait is declared for any of the
+    # field in field_ids then it is accepted to be true
+    for field_id in field_ids
+        field_columns = filter(x -> startswith(x, string(field_id)), names(dataset))
+        # Looping over the columns of the field:
+        # This means that a trait is declared present
+        # if it is diagnosed at any of the assessment visits
+        for colname in field_columns
+            column = dataset[!, colname]
+            for index in eachindex(column)
+                value = getindex(column, index)
+                if haskey(indices, value)
+                    output[index, indices[value]] = 1
+                end
             end
         end
     end
-
-    return DataFrame(collect(output), string.(field_id, "-", subfields))
-
+    return DataFrame(collect(output), string.(entry["field"], "_", phenotypes))
 end
 
 """
 Processing of ordinal data, only the first instance is used.
 """
-function process_21(dataset, field_id)
+function process_ordinal(dataset, field_id)
     colname = Symbol(field_id, "-0.0")
     column = dataset[!, colname]
     output = Vector{Union{Int, Missing}}(undef, size(column, 1))
@@ -42,7 +96,7 @@ end
 """
 Processing of continuous data, only the first instance is used.
 """
-function process_31(dataset, field_id)
+function process_continuous(dataset, field_id)
     colname = Symbol(field_id, "-0.0")
     column = dataset[!, colname]
     output = Vector{Union{Float64, Missing}}(undef, size(column, 1))
@@ -58,7 +112,7 @@ end
 """
 Processing of integer data, only the first instance is used.
 """
-function process_11(dataset, field_id)
+function process_integer(dataset, field_id)
     colname = Symbol(field_id, "-0.0")
     return dataset[!, [colname]]
 end
