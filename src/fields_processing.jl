@@ -1,4 +1,4 @@
-function process_vt_22_c_6(dataset, field_metadata, coding, subfields)
+function process_22(dataset, entry)
     # for each individual we list all traits that were diagnosed
     # for at least one of the assessment visit 
     n = nrows(dataset)
@@ -21,4 +21,44 @@ function process_vt_22_c_6(dataset, field_metadata, coding, subfields)
 
     return DataFrame(collect(output), string.(field_id, "-", subfields))
 
+end
+
+"""
+Processing of ordinal data, only the first instance is used.
+"""
+function process_21(dataset, field_id)
+    colname = Symbol(field_id, "-0.0")
+    column = dataset[!, colname]
+    output = Vector{Union{Int, Missing}}(undef, size(column, 1))
+    for index in eachindex(column)
+        val = column[index] 
+        if val !== missing && val >= 0
+            output[index] = val
+        end
+    end
+    return DataFrame(NamedTuple{(colname,)}([output]))
+end
+
+"""
+Processing of continuous data, only the first instance is used.
+"""
+function process_31(dataset, field_id)
+    colname = Symbol(field_id, "-0.0")
+    column = dataset[!, colname]
+    output = Vector{Union{Float64, Missing}}(undef, size(column, 1))
+    for index in eachindex(column)
+        val = column[index] 
+        if val !== missing
+            output[index] = val
+        end
+    end
+    return DataFrame(NamedTuple{(colname,)}([output]))
+end
+
+"""
+Processing of integer data, only the first instance is used.
+"""
+function process_11(dataset, field_id)
+    colname = Symbol(field_id, "-0.0")
+    return dataset[!, [colname]]
 end

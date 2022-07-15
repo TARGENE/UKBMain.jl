@@ -144,6 +144,7 @@ end
         "dataset" => "/home/s2042526/UK-BioBank-53116/phenotypes/output.csv",
         "out-prefix" => "processed",
         "conf" => joinpath("config", "config.yaml"),
+        "subset" => nothing
     )
     
 
