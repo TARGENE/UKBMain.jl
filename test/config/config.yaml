@@ -1,21 +1,25 @@
 phenotypes:
-  - [1408, 1777, 1727, 1548, 924]
+  # Multiple traits can be given as a list to make it more readable
+  # with or without the keyword "field"
+  - [1408, 1727]
   - field: [1379, 1329, 1339]
   - field: 30270
+  - 1548
+  # Categorical traits must provide codings
+  - field: 1707
+    codings: [1, 2]
+  - field: 1777
+    codings: 1
   - field: 40006
     codings:
       - [C43, Block D37-D48, D41]
-      - [Block C43-C44, C61, C18]
       - C44
   - field: 20002
     codings:
       - [1674, 1065, 1066, 1067]
       - any: [1452, 1453, 1454, 1455, 1548, 1549, 1550, 1625, 1660, 1661, 1667, 1680]
         name: 1762
-      - any: [1441, 1443, 1576, 1577, 1675, 1676]
-        name: 1510
-  - field: [41202, 41204]
-    close: or
+  - field: 41202 | 41204
     codings:
       - ["Block J40-J47", "O26", "O20"]
       - ["Block A30-A49", "K44"]

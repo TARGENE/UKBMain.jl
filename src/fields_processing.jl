@@ -46,14 +46,14 @@ function phenotypes_and_indices(codings)
 end
 
 
-get_field_ids(field_id::String) = parse.(Int, split(entry["field"], " | "))
+get_field_ids(entry::String) = parse.(Int, split(entry, " | "))
 get_field_ids(field_id::Int) = [field_id]
 
 function process_categorical(dataset, entry)
     check_categorical_entries(entry)
     phenotypes, indices = phenotypes_and_indices(entry["codings"])
 
-    output = spzeros(Bool, nrows(dataset), size(phenotypes, 1))
+    output = Array{Union{Missing, Bool}, 2}(undef, nrows(dataset), size(phenotypes, 1))
 
     field_ids = get_field_ids(entry["field"])
 
@@ -68,13 +68,17 @@ function process_categorical(dataset, entry)
             column = dataset[!, colname]
             for index in eachindex(column)
                 value = getindex(column, index)
-                if haskey(indices, value)
+                if value === missing
+                    continue
+                elseif haskey(indices, value)
                     output[index, indices[value]] = 1
+                else
+                    output[index, indices[value]] = 0
                 end
             end
         end
     end
-    return DataFrame(collect(output), string.(entry["field"], "_", phenotypes))
+    return DataFrame(output, string.(entry["field"], "_", phenotypes))
 end
 
 """

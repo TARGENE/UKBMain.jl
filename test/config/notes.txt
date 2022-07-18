@@ -1,4 +1,4 @@
 gene atlas 1695 ->> point to -1 either as a node_id or a parent_id
-field 924 ->> ukbconv does not return anything for this
+fields [924, 189, 1070, 904, 884, 864]  ->> ukbconv does not return anything for this: no in current basket
 I need to split binary and continuous traits
 field 20117, 20116 --> ga says ordinal I am not sure

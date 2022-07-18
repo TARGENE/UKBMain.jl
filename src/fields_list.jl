@@ -7,6 +7,12 @@ end
 update_list!(fields_list, entry::Int) =
     push!(fields_list, entry)
 
+function update_list!(fields_list, entry::String)
+    for field_id in parse.(Int, split(entry, " | "))
+        push!(fields_list, field_id)
+    end
+end
+
 update_list!(fields_list, entry::Dict) =
     update_list!(fields_list, entry["field"])
 

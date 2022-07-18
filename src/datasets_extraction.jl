@@ -4,7 +4,6 @@ global ORDINAL_FIELDS = Set([
     1319, 1498
 ]) 
 
-
 """
     field_metadata(fields::DataFrame, field_id::Int)
 
@@ -15,8 +14,8 @@ function fieldmetadata(fields::DataFrame, field_id::Int)
     return fields[row_id, :]
 end
 
-function fieldmetadata(fields::DataFrame, field_id::String)
-    field_ids = parse.(Int, split(entry["field"], " | "))
+function fieldmetadata(fields::DataFrame, entry::String)
+    field_ids = parse.(Int, split(entry, " | "))
     field_metadata = fieldmetadata(fields, field_ids[1])
 
     for f_id in field_ids
@@ -108,20 +107,3 @@ function _build_from_yaml_entry(entry, dataset, fields_metadata)
         throw(ArgumentError(string("Sorry I currently don't know how to process field: ", entry)))
     end
 end
-
-for role in ("phenotypes", "covariates", "confounders", "treatments")
-    if haskey(conf, role)
-        field_yaml_entries = conf[role]
-        output = DataFrame()
-        for entry in field_yaml_entries
-            # The entry could be any of: Vector | Integer | Dict
-            entry_output = build_from_yaml_entry(entry, dataset, fields_metadata)
-            output = hcat(output, entry_output)
-        end
-        outfile = string(parsed_args["out-prefix"], ".", role, ".csv")
-        CSV.write(outfile, output)
-    end
-end
-
-
-

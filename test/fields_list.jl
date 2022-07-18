@@ -11,9 +11,12 @@ using DelimitedFiles
 
     fields_list = readdlm(parsed_args["output"], Int)
     @test fields_list[:, 1] ==
-    [1408, 1777, 1727, 1548, 924, 
+    [1408, 1727,
      1379, 1329, 1339,
      30270,
+     1548,
+     1707,
+    1777,
      40006,
      20002,
      41202, 41204]
