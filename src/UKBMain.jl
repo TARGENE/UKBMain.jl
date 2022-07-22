@@ -16,7 +16,7 @@ include("ukb_download.jl")
 include("datasets_extraction.jl")
 include("fields_processing.jl")
 
-export build_fields_list, csvmerge
+export build_fields_list, csvmerge, filter_and_extract
 
 function csvmerge(parsed_args)
     csv₁ = CSV.read(parsed_args["csv1"], DataFrame)

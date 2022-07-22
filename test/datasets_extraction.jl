@@ -3,24 +3,18 @@ using UKBMain
 using CSV
 using DataFrames
 
-@testset "Test main" begin
+@testset "Test main with phenotypes, covariates and confounders" begin
     parsed_args = Dict(
         "dataset" => joinpath("data", "ukb_sample_traits.csv"),
         "out-prefix" => "processed",
         "conf" => joinpath("config", "config.yaml"),
-        "subset" => nothing
     )
-    outfile = string(parsed_args["out-prefix"], ".phenotypes.csv")
-    # Temp utils
-    # data = UKBMain.read_dataset(parsed_args["dataset"], parsed_args["subset"])
-    # CSV.write(parsed_args["dataset"], data)
-    # cols = UKBMain.fieldcolumns(data, 40006)
-    # fields_metadata = UKBMain.read_fields_metadata()
-    # UKBMain.fieldmetadata(fields_metadata, 1707)
     
-    UKBMain.main(parsed_args)
+    filter_and_extract(parsed_args)
 
-    phenotypes = CSV.read(outfile, DataFrame)
+    # Check phenotypes output
+    phenotypes_outfile = string(parsed_args["out-prefix"], ".phenotypes.csv")
+    phenotypes = CSV.read(phenotypes_outfile, DataFrame)
     # Check columns
     @test names(phenotypes) == ["1408-0.0",
                                 "1727-0.0",
@@ -47,6 +41,7 @@ using DataFrames
                                 "41202 | 41204_Block A30-A49",
                                 "41202 | 41204_K44",
                                 "41202 | 41204_G20"]
+    @test size(phenotypes) == (10, 25)
     # 1408 is an ordinal field
     # Negative values are declared missing and other values forwarded
     @test 1408 ∈ UKBMain.ORDINAL_FIELDS
@@ -97,5 +92,71 @@ using DataFrames
     @test phenotypes[:, "41202 | 41204_K44"] == [true, false, true, false, false, false, false, false, false, false]
     @test phenotypes[:, "41202 | 41204_G20"] == [false, false, false, false, false, false, false, false, false, true]
     
-    rm(outfile)
+    rm(phenotypes_outfile)
+
+    # Check confounders output
+    confounders_outfile = string(parsed_args["out-prefix"], ".confounders.csv")
+    confounders = CSV.read(confounders_outfile, DataFrame)
+    # Check columns
+    @test names(confounders) == ["21000_White",
+                                 "21000_Mixed",
+                                 "21000_Asian",
+                                 "21000_Black",
+                                 "21000_Chinese",
+                                 "21000_Other"]
+    @test size(confounders) == (10, 6)
+    @test confounders[!, "21000_White"] == [1, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+    @test confounders[!, "21000_Mixed"] == [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+    @test confounders[!, "21000_Asian"] == [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+    @test confounders[!, "21000_Other"] == [0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+    @test confounders[!, "21000_Chinese"] == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    @test confounders[!, "21000_Black"] == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    rm(confounders_outfile)
+
+    # Check covariates output
+    covariates_outfile = string(parsed_args["out-prefix"], ".covariates.csv")
+    covariates = CSV.read(covariates_outfile, DataFrame)
+
+    @test names(covariates) == ["22001_Female", "21003-0.0"]
+    @test size(covariates) == (10, 2)
+    @test covariates[!, "22001_Female"] == [0, 1, 1, 1, 0, 0, 1,0, 0, 0]
+    @test covariates[!, "21003-0.0"] == [64, 42,44, 46, 49, 57, 45, 57, 42, 61]
+    rm(covariates_outfile)
+
+    # Check sample_ids
+    sample_ids_file = string(parsed_args["out-prefix"], ".sample_ids.txt")
+    sample_ids = CSV.read(sample_ids_file, DataFrame, header=false)[!, 1]
+    @test sample_ids == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    rm(sample_ids_file)
+end
+
+@testset "Test main with subset and no confounders" begin
+    parsed_args = Dict(
+        "dataset" => joinpath("data", "ukb_sample_traits.csv"),
+        "out-prefix" => "processed",
+        "conf" => joinpath("config", "config_with_subset_no_confounders.yaml"),
+    )
+    
+    filter_and_extract(parsed_args)
+
+    phenotypes_outfile = string(parsed_args["out-prefix"], ".phenotypes.csv")
+    phenotypes = CSV.read(phenotypes_outfile, DataFrame)
+    @test size(phenotypes) == (2, 25)
+    rm(phenotypes_outfile)
+
+    covariates_outfile = string(parsed_args["out-prefix"], ".covariates.csv")
+    covariates = CSV.read(covariates_outfile, DataFrame)
+    @test size(covariates) == (2, 1)
+    rm(covariates_outfile)
+
+    confounders_outfile = string(parsed_args["out-prefix"], ".confounders.csv")
+    @test !isfile(confounders_outfile)
+
+    sample_ids_file = string(parsed_args["out-prefix"], ".sample_ids.txt")
+    sample_ids = CSV.read(sample_ids_file, DataFrame, header=false)[!, 1]
+    @test sample_ids == [2, 7]
+    rm(sample_ids_file)
+    
+
 end

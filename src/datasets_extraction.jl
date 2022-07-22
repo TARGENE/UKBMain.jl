@@ -28,16 +28,6 @@ function fieldmetadata(fields::DataFrame, entry::String)
 end
 
 
-function read_dataset(dataset_file::String, subset_file::Nothing)
-    return CSV.read(dataset_file, DataFrame)
-end
-
-function read_dataset(dataset_file::String, subset_file::String)
-    dataset = CSV.read(parsed_args["dataset"], DataFrame)
-    subset = JSON.parse(parsed_args["subset"];)
-    return dataset
-end
-
 build_from_yaml_entry(entry::Int, dataset, fields_metadata) = 
     _build_from_yaml_entry(entry, dataset, fields_metadata)
 
@@ -82,7 +72,30 @@ function _build_from_yaml_entry(entry, dataset, fields_metadata)
     end
 end
 
-function main(parsed_args)
+
+function read_dataset(datasetfile::String, conf, fields_metadata)
+    dataset = CSV.read(datasetfile, DataFrame)
+    if haskey(conf, "subset")
+        @info "Subsetting dataset."
+        field_yaml_entries = conf["subset"]
+        filter_columns = UKBMain.role_dataframe(field_yaml_entries, dataset, fields_metadata)
+        dataset = hcat(dataset, filter_columns)
+        return subset(dataset, (Symbol(name) => x -> x .=== true for name in names(filter_columns))...)
+    end
+    return dataset
+end
+
+function role_dataframe(field_yaml_entries, dataset, fields_metadata)
+    output = DataFrame()
+    for entry in field_yaml_entries
+        # The entry could be any of: Vector | Integer | Dict
+        entry_output = build_from_yaml_entry(entry, dataset, fields_metadata)
+        output = hcat(output, entry_output)
+    end
+    return output
+end
+
+function filter_and_extract(parsed_args)
     # Read configuration
     conf = YAML.load_file(parsed_args["conf"])
 
@@ -91,21 +104,20 @@ function main(parsed_args)
     fields_metadata = read_fields_metadata()
 
     # Read dataset
-    dataset = read_dataset(parsed_args["dataset"], parsed_args["subset"])
+    dataset = read_dataset(parsed_args["dataset"], conf, fields_metadata)
     
+    # Generate various output files
     for role in ("phenotypes", "covariates", "confounders", "treatments")
         if haskey(conf, role)
+            @info string("Generating processed file for: ", role, ".")
             field_yaml_entries = conf[role]
-            output = DataFrame()
-            for entry in field_yaml_entries
-                # The entry could be any of: Vector | Integer | Dict
-                entry_output = build_from_yaml_entry(entry, dataset, fields_metadata)
-                output = hcat(output, entry_output)
-            end
-            outfile = string(parsed_args["out-prefix"], ".", role, ".csv")
-            CSV.write(outfile, output)
+            output = role_dataframe(field_yaml_entries, dataset, fields_metadata)
+            CSV.write(string(parsed_args["out-prefix"], ".", role, ".csv"), output)
         end
     end
+
+    # Write sample ids
+    writedlm(string(parsed_args["out-prefix"], ".sample_ids.txt"), dataset.eid)
 end
 
 

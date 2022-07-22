@@ -23,4 +23,4 @@ end
 
 parsed_args = parse_commandline()
 
-main(parsed_args)
+filter_and_extract(parsed_args)
