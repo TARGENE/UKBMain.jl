@@ -49,18 +49,19 @@ end
 get_field_ids(entry::String) = parse.(Int, split(entry, " | "))
 get_field_ids(field_id::Int) = [field_id]
 
+fieldcolumns(dataset, field_id) = filter(x -> startswith(x, string(field_id)), names(dataset))
+
 function process_categorical(dataset, entry)
     check_categorical_entries(entry)
     phenotypes, indices = phenotypes_and_indices(entry["codings"])
 
-    output = Array{Union{Missing, Bool}, 2}(undef, nrows(dataset), size(phenotypes, 1))
-
+    output = spzeros(Bool, size(dataset, 1), size(phenotypes, 1))
     field_ids = get_field_ids(entry["field"])
 
     # This loop ensure that if the trait is declared for any of the
     # field in field_ids then it is accepted to be true
     for field_id in field_ids
-        field_columns = filter(x -> startswith(x, string(field_id)), names(dataset))
+        field_columns = fieldcolumns(dataset, field_id)
         # Looping over the columns of the field:
         # This means that a trait is declared present
         # if it is diagnosed at any of the assessment visits
@@ -68,17 +69,13 @@ function process_categorical(dataset, entry)
             column = dataset[!, colname]
             for index in eachindex(column)
                 value = getindex(column, index)
-                if value === missing
-                    continue
-                elseif haskey(indices, value)
-                    output[index, indices[value]] = 1
-                else
-                    output[index, indices[value]] = 0
+                if value !== missing && haskey(indices, value)
+                    output[index, indices[value]] = true
                 end
             end
         end
     end
-    return DataFrame(output, string.(entry["field"], "_", phenotypes))
+    return DataFrame(collect(output), string.(entry["field"], "_", phenotypes))
 end
 
 """

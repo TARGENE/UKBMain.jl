@@ -89,7 +89,7 @@ end
 
 function _build_from_yaml_entry(entry, dataset, fields_metadata)
     field_id = get_field_id(entry)
-    println(field_id)
+    @info string("Processing field: ", field_id)
     field_metadata = fieldmetadata(fields_metadata, field_id)
     # Continuous data
     if field_metadata.value_type == 31

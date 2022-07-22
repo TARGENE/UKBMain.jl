@@ -11,7 +11,10 @@ using DataFrames
         "subset" => nothing
     )
     
-    data = UKBMain.read_dataset(parsed_args["dataset"], parsed_args["subset"])
+    # Temp utils
+    # data = UKBMain.read_dataset(parsed_args["dataset"], parsed_args["subset"])
+    # CSV.write(parsed_args["dataset"], data)
+    # cols = UKBMain.fieldcolumns(data, 40006)
     
     UKBMain.main(parsed_args)
 
@@ -19,7 +22,32 @@ using DataFrames
         string(parsed_args["out-prefix"], ".phenotypes.csv"), 
         DataFrame
     )
-
+    # Check columns
+    @test names(phenotypes) == ["1408-0.0",
+                                "1727-0.0",
+                                "1379-0.0",
+                                "1329-0.0",
+                                "1339-0.0",
+                                "30270-0.0",
+                                "1548-0.0",
+                                "1707_1",
+                                "1707_2",
+                                "1777_1",
+                                "40006_C43",
+                                "40006_Block D37-D48",
+                                "40006_D41",
+                                "40006_C44",
+                                "20002_1674",
+                                "20002_1065",
+                                "20002_1066",
+                                "20002_1067",
+                                "20002_1762",
+                                "41202 | 41204_Block J40-J47",
+                                "41202 | 41204_O26",
+                                "41202 | 41204_O20",
+                                "41202 | 41204_Block A30-A49",
+                                "41202 | 41204_K44",
+                                "41202 | 41204_G20"]
     # 1408 is an ordinal field
     # Negative values are declared missing and other values forwarded
     @test 1408 ∈ UKBMain.ORDINAL_FIELDS
@@ -39,7 +67,38 @@ using DataFrames
     @test phenotypes[end, "30270-0.0"] === expected_output[end]
 
     # 1707 is a categorical field, 2 codings are queried
-    phenotypes[!, "1707_1"] == [true, missing, true, true, missing, true, missing, true, missing, missing]
+    expected_1707_1 = [true, missing, true, true, false, true, false, true, false, false]
+    expected_1707_2 = [false, missing, false, false, true, false, true, false, false, false]
+    for row_index in 1:size(phenotypes, 1)
+        @test expected_1707_1[row_index] === phenotypes[row_index, "1707_1"]
+        @test expected_1707_2[row_index] === phenotypes[row_index, "1707_2"]
+    end
+    
+    # 40006 is a categorical trait
+    # In theory all columns will contain at least one non-missing value
+    # In this example, only the 3 first columns contain non-missing values
+    @test phenotypes[:, "40006_Block D37-D48"] == [true, false, false, true, false, true, false, false, false, false]
+    @test phenotypes[:, "40006_C43"] == [true, false, false, false, false, false, true, false, false, false]
+    @test phenotypes[:, "40006_D41"] == [false, false, false, false, false, false, true, false, false, false]
+    @test phenotypes[:, "40006_C44"] == [true, false, false, true, false, false, false, false, false, false]
 
+    # 20002 is a categorical trait 
+    # with multiple instances that correspond to the assessment visit
+    # Reporting the disease at any of those visits results as the 
+    # disease considered declared
+    @test phenotypes[:, "20002_1674"] == [false, false, false, false, false, false, false, false, false, false]
+    @test phenotypes[:, "20002_1065"] == [false, false, false, true, false, false, true, false, false, true]
+    @test phenotypes[:, "20002_1066"] == [true, false, true, false, true, false, false, false, false, false]
+    @test phenotypes[:, "20002_1067"] == [true, false, false, false, true, false, false, false, false, false]
+    @test phenotypes[:, "20002_1762"] == [false, false, false, false, false, false, true, false, true, false]
 
+    # 41202 | 41204 both are categorical
+    # The presence of a disease in any of those fields results as the
+    # disease considered declared
+    @test phenotypes[:, "41202 | 41204_Block J40-J47"] == [false, false, false, false, false, false, false, false, false, false]
+    @test phenotypes[:, "41202 | 41204_O26"] == [true, false, false, false, false, false, false, false, false, false]
+    @test phenotypes[:, "41202 | 41204_O20"] == [false, false, false, false, false, false, false, false, false, false]
+    @test phenotypes[:, "41202 | 41204_Block A30-A49"] == [false, false, false, false, false, false, false, false, false, false]
+    @test phenotypes[:, "41202 | 41204_K44"] == [true, false, true, false, false, false, false, false, false, false]
+    @test phenotypes[:, "41202 | 41204_G20"] == [false, false, false, false, false, false, false, false, false, true]
 end
