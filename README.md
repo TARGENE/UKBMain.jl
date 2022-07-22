@@ -28,14 +28,14 @@ Each entry is further organised as a list of traits of interest. Depending on th
 
 ## A Typical workflow
 
-### Extracting fields list from the YAML configuration file
+### 1. Extract fields-list from the YAML configuration file
 
 This is typically used before a call to `ukbconv` which requires a list of fields of interest in a `.txt` file.
 
 ```bash
 julia --project --startup-file=no scripts/build_fields_list.jl --conf CONF.yaml --output OUTPUT_FIELDS_PATH
 ```
-### Run ukbconv
+### 2. Run ukbconv with the extracted fields-list 
 
 See the man page for ukbconv, but a typical example would be:
 
@@ -45,7 +45,7 @@ See the man page for ukbconv, but a typical example would be:
 
 where `OUTPUT_FIELDS_PATH` is the output from the previous command.
 
-## Converting/Splitting a CSV UKB main dataset into organised 
+### 3. Subset/Convert/Split a CSV UKB main dataset into organised subsets
 
 ```bash
 julia --project --startup-file=no src/fields_processing.jl UKBMAIN_PATH --conf CONF.yaml --out-prefix OUT_PREFIX
