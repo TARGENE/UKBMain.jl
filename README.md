@@ -17,7 +17,7 @@ This YAML file contains up to 4 main entries:
 - phenotypes
 - confounders
 - covariates
-- subset
+- subset (Only accepts categorical variables for now, see below)
 
 Each entry is further organised as a list of traits of interest. Depending on their data type, the traits can be queried in any of the following ways:
 
