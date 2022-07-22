@@ -26,16 +26,29 @@ Each entry is further organised as a list of traits of interest. Depending on th
 - Union of Categorical variables: Finally, we also provide the ability to consider the union of fields themselves to define trait with the "FIELD_1 | FIELD_2 | ..." pattern.
 - Ordinal variables: Some traits are declared as categorical by the UKB but an ordinal interpretation may be more appropriate. We have identified and hardcoded a list of such traits in the `ORDINAL_FIELDS` constant.
 
-## Extracting fields list from the YAML configuration file
+## A Typical workflow
+
+### Extracting fields list from the YAML configuration file
 
 This is typically used before a call to `ukbconv` which requires a list of fields of interest in a `.txt` file.
 
 ```bash
-julia --project --startup-file=no scripts/build_fields_list.jl --conf CONF.yaml --output OUTPUT_PATH
+julia --project --startup-file=no scripts/build_fields_list.jl --conf CONF.yaml --output OUTPUT_FIELDS_PATH
 ```
+### Run ukbconv
+
+See the man page for ukbconv, but a typical example would be:
+
+```bash
+./ukbconv ENCRYPTED_UKBMAIN_FILE csv -iOUTPUT_FIELDS_PATH -oUKBMAIN_PATH
+```
+
+where `OUTPUT_FIELDS_PATH` is the output from the previous command.
 
 ## Converting/Splitting a CSV UKB main dataset into organised 
 
 ```bash
-julia --project --startup-file=no src/fields_processing.jl DATASET_PATH --conf CONF.yaml --out-prefix OUT_PREFIX
+julia --project --startup-file=no src/fields_processing.jl UKBMAIN_PATH --conf CONF.yaml --out-prefix OUT_PREFIX
 ```
+
+where `UKBMAIN_PATH` is the output from the previous command.
