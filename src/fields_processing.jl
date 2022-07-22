@@ -51,7 +51,7 @@ get_field_ids(field_id::Int) = [field_id]
 
 fieldcolumns(dataset, field_id) = filter(x -> startswith(x, string(field_id)), names(dataset))
 
-function process_categorical(dataset, entry)
+function process_binary(dataset, entry)
     check_categorical_entries(entry)
     phenotypes, indices = phenotypes_and_indices(entry["codings"])
 

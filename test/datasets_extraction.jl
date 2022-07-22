@@ -15,6 +15,8 @@ using DataFrames
     # data = UKBMain.read_dataset(parsed_args["dataset"], parsed_args["subset"])
     # CSV.write(parsed_args["dataset"], data)
     # cols = UKBMain.fieldcolumns(data, 40006)
+    # fields_metadata = UKBMain.read_fields_metadata()
+    # UKBMain.fieldmetadata(fields_metadata, 1707)
     
     UKBMain.main(parsed_args)
 

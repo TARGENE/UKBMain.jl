@@ -6,7 +6,7 @@ function parse_commandline()
 
     @add_arg_table s begin
         "--conf"
-            help = "yaml configuration file"
+            help = "The YAML configuration file"
             default = joinpath("config", "config.yaml")
             arg_type = String
         "--output"

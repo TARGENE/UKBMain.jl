@@ -1,4 +1,4 @@
-global ORDINAL_FIELDS = Set([
+const ORDINAL_FIELDS = Set([
     1408, 1727, 1548, 728, 1717, 1389, 1478, 1518,
     1558, 1349, 1359, 1369, 1379, 1329, 1339, 1239, 1687, 1697,
     1319, 1498
@@ -61,6 +61,27 @@ end
 get_field_id(entry) = entry 
 get_field_id(entry::Dict) = entry["field"]
 
+function _build_from_yaml_entry(entry, dataset, fields_metadata)
+    field_id = get_field_id(entry)
+    @info string("Processing field: ", field_id)
+    field_metadata = fieldmetadata(fields_metadata, field_id)
+    # Continuous data
+    if field_metadata.value_type == 31
+        return process_continuous(dataset, entry)
+    # Integer data
+    elseif field_metadata.value_type == 11
+        return process_integer(dataset, entry)
+    # Categorical data but considered ordinal
+    elseif field_id ∈ ORDINAL_FIELDS
+        return process_ordinal(dataset, entry)
+    # Categorical data: all processed in the same way
+    elseif field_metadata.value_type ∈ (21, 22)
+        return process_binary(dataset, entry)
+    else
+        throw(ArgumentError(string("Sorry I currently don't know how to process field: ", entry)))
+    end
+end
+
 function main(parsed_args)
     # Read configuration
     conf = YAML.load_file(parsed_args["conf"])
@@ -87,23 +108,4 @@ function main(parsed_args)
     end
 end
 
-function _build_from_yaml_entry(entry, dataset, fields_metadata)
-    field_id = get_field_id(entry)
-    @info string("Processing field: ", field_id)
-    field_metadata = fieldmetadata(fields_metadata, field_id)
-    # Continuous data
-    if field_metadata.value_type == 31
-        return process_continuous(dataset, entry)
-    # Integer data
-    elseif field_metadata.value_type == 11
-        return process_integer(dataset, entry)
-    # Categorical data but considered ordinal
-    elseif field_id ∈ ORDINAL_FIELDS
-        return process_ordinal(dataset, entry)
-    # Categorical data: all processed in the same way
-    elseif field_metadata.value_type ∈ (22, 21)
-        return process_categorical(dataset, entry)
-    else
-        throw(ArgumentError(string("Sorry I currently don't know how to process field: ", entry)))
-    end
-end
+
