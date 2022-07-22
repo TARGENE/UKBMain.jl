@@ -69,12 +69,8 @@ using DataFrames
     @test phenotypes[end, "30270-0.0"] === expected_output[end]
 
     # 1707 is a categorical field, 2 codings are queried
-    expected_1707_1 = [true, missing, true, true, false, true, false, true, false, false]
-    expected_1707_2 = [false, missing, false, false, true, false, true, false, false, false]
-    for row_index in 1:size(phenotypes, 1)
-        @test expected_1707_1[row_index] === phenotypes[row_index, "1707_1"]
-        @test expected_1707_2[row_index] === phenotypes[row_index, "1707_2"]
-    end
+    @test phenotypes[!, "1707_1"] == [1, 0, 1, 1, 0, 1, 0, 1, 0, 0]
+    @test phenotypes[!, "1707_2"] == [0, 0, 0, 0, 1, 0, 1, 0, 0, 0]
     
     # 40006 is a categorical trait
     # In theory all columns will contain at least one non-missing value
