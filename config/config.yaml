@@ -1,4 +1,7 @@
 phenotypes:
+  # Some fields that currently cause issues:
+  # 1695 ->> point to -1 either as a node_id or a parent_id
+  # [924, 189, 1070, 904, 884, 864]  ->> ukbconv does not return anything for this: probably not in our basket
   - [1408, 1727, 1548, 728, 1717, 1389, 1478, 1518, 1558, 1349, 1359, 1369]
   - field: [1379, 1329, 1339, 1239, 1687, 1697, 30260, 30280, 30240, 30250, 30300, 30270]
   - field: [30290, 30230, 30170, 30120, 30130, 30140, 30150, 30160, 30180, 30190, 30200, 30210, 30220]
@@ -114,5 +117,25 @@ phenotypes:
       - ["M86", "M87", "M84", "M85", "M80", "M81", "Block B15-B19", "M62", "M65", "M66", "M67"]
       - ["Block H80-H83", "Block M50-M54", "Block N70-N77", "H43", "H40", "Block H00-H06"]
 
+confounders:
+  - field: 21000
+    codings:
+      - any: [1, 1001, 1002, 1003]
+        name: White
+      - any: [2, 2001, 2002, 2003, 2004]
+        name: Mixed
+      - any: [3, 3001, 3002, 3003, 3004]
+        name: Asian
+      - any: [4, 4001, 4002, 4003]
+        name: Black
+      - any: [5]
+        name: Chinese
+      - any: [6]
+        name: Other
 
-
+covariates:
+  - field: 22001
+    codings:
+      - any: [0]
+        name: Female
+  - field: 21003

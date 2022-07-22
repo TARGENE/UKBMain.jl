@@ -10,7 +10,7 @@ using DataFrames
         "conf" => joinpath("config", "config.yaml"),
         "subset" => nothing
     )
-    
+    outfile = string(parsed_args["out-prefix"], ".phenotypes.csv")
     # Temp utils
     # data = UKBMain.read_dataset(parsed_args["dataset"], parsed_args["subset"])
     # CSV.write(parsed_args["dataset"], data)
@@ -20,10 +20,7 @@ using DataFrames
     
     UKBMain.main(parsed_args)
 
-    phenotypes = CSV.read(
-        string(parsed_args["out-prefix"], ".phenotypes.csv"), 
-        DataFrame
-    )
+    phenotypes = CSV.read(outfile, DataFrame)
     # Check columns
     @test names(phenotypes) == ["1408-0.0",
                                 "1727-0.0",
@@ -99,4 +96,6 @@ using DataFrames
     @test phenotypes[:, "41202 | 41204_Block A30-A49"] == [false, false, false, false, false, false, false, false, false, false]
     @test phenotypes[:, "41202 | 41204_K44"] == [true, false, true, false, false, false, false, false, false, false]
     @test phenotypes[:, "41202 | 41204_G20"] == [false, false, false, false, false, false, false, false, false, true]
+    
+    rm(outfile)
 end

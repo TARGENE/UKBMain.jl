@@ -31,8 +31,11 @@ Each entry is further organised as a list of traits of interest. Depending on th
 This is typically used before a call to `ukbconv` which requires a list of fields of interest in a `.txt` file.
 
 ```bash
-julia --project scripts/build_fields_list.jl --conf --output
+julia --project --startup-file=no scripts/build_fields_list.jl --conf CONF.yaml --output OUTPUT_PATH
 ```
 
 ## Converting/Splitting a CSV UKB main dataset into organised 
 
+```bash
+julia --project --startup-file=no src/fields_processing.jl DATASET_PATH --conf CONF.yaml --out-prefix OUT_PREFIX
+```
