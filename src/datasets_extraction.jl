@@ -95,6 +95,10 @@ function role_dataframe(field_yaml_entries, dataset, fields_metadata)
     return output
 end
 
+isbinary(::Type{Bool}) = true
+isbinary(::Type{Union{Bool, Missing}}) = true
+isbinary(::Type{<:Any}) = false
+
 function filter_and_extract(parsed_args)
     # Read configuration
     conf = YAML.load_file(parsed_args["conf"])
@@ -112,7 +116,14 @@ function filter_and_extract(parsed_args)
             @info string("Generating processed file for: ", role, ".")
             field_yaml_entries = conf[role]
             output = role_dataframe(field_yaml_entries, dataset, fields_metadata)
-            CSV.write(string(parsed_args["out-prefix"], ".", role, ".csv"), output)
+            if role == "phenotypes"
+                binary_cols = [colname for colname in names(output) if isbinary(eltype(output[!, colname]))]
+                continuous_cols = [colname for colname in names(output) if !(colname ∈ binary_cols)]
+                CSV.write(string(parsed_args["out-prefix"], ".binary.", role, ".csv"), output[!, binary_cols])
+                CSV.write(string(parsed_args["out-prefix"], ".continuous.", role, ".csv"), output[!, continuous_cols])
+            else
+                CSV.write(string(parsed_args["out-prefix"], ".", role, ".csv"), output)
+            end
         end
     end
 
