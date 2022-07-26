@@ -8,6 +8,7 @@ using DataFrames
         "dataset" => joinpath("data", "ukb_sample_traits.csv"),
         "out-prefix" => "processed",
         "conf" => joinpath("config", "config.yaml"),
+        "withdrawal-list" => nothing
     )
     
     filter_and_extract(parsed_args)
@@ -141,22 +142,23 @@ end
         "dataset" => joinpath("data", "ukb_sample_traits.csv"),
         "out-prefix" => "processed",
         "conf" => joinpath("config", "config_with_subset_no_confounders.yaml"),
+        "withdrawal-list" => joinpath("data", "withdrawal_list.txt")
     )
     
     filter_and_extract(parsed_args)
 
     binary_phenotypes_outfile = string(parsed_args["out-prefix"], ".binary.phenotypes.csv")
     binary_phenotypes = CSV.read(binary_phenotypes_outfile, DataFrame)
-    @test size(binary_phenotypes) == (2, 18)
+    @test size(binary_phenotypes) == (1, 18)
     continuous_phenotypes_outfile = string(parsed_args["out-prefix"], ".continuous.phenotypes.csv")
     continuous_phenotypes = CSV.read(continuous_phenotypes_outfile, DataFrame)
-    @test size(continuous_phenotypes) == (2, 7)
+    @test size(continuous_phenotypes) == (1, 7)
     rm(binary_phenotypes_outfile)
     rm(continuous_phenotypes_outfile)
 
     covariates_outfile = string(parsed_args["out-prefix"], ".covariates.csv")
     covariates = CSV.read(covariates_outfile, DataFrame)
-    @test size(covariates) == (2, 1)
+    @test size(covariates) == (1, 1)
     rm(covariates_outfile)
 
     confounders_outfile = string(parsed_args["out-prefix"], ".confounders.csv")
@@ -164,7 +166,7 @@ end
 
     sample_ids_file = string(parsed_args["out-prefix"], ".sample_ids.txt")
     sample_ids = CSV.read(sample_ids_file, DataFrame, header=false)[!, 1]
-    @test sample_ids == [2, 7]
+    @test sample_ids == [2]
     rm(sample_ids_file)
     
 

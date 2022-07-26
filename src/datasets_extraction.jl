@@ -73,14 +73,19 @@ function _build_from_yaml_entry(entry, dataset, fields_metadata)
 end
 
 
-function read_dataset(datasetfile::String, conf, fields_metadata)
-    dataset = CSV.read(datasetfile, DataFrame)
+function read_dataset(parsed_args, conf, fields_metadata)
+    dataset = CSV.read(parsed_args["dataset"], DataFrame)
     if haskey(conf, "subset")
         @info "Subsetting dataset."
         field_yaml_entries = conf["subset"]
         filter_columns = UKBMain.role_dataframe(field_yaml_entries, dataset, fields_metadata)
         dataset = hcat(dataset, filter_columns)
-        return subset(dataset, (Symbol(name) => x -> x .=== true for name in names(filter_columns))...)
+        dataset = subset(dataset, (Symbol(name) => x -> x .=== true for name in names(filter_columns))...)
+    end
+    if parsed_args["withdrawal-list"] !== nothing
+        @info "Removing individuals from withdrawal-list"
+        withdrawal_list = Set(readdlm(parsed_args["withdrawal-list"]))
+        dataset = subset(dataset, :eid => ByRow(x -> !(x ∈ withdrawal_list)))
     end
     return dataset
 end
@@ -108,7 +113,7 @@ function filter_and_extract(parsed_args)
     fields_metadata = read_fields_metadata()
 
     # Read dataset
-    dataset = read_dataset(parsed_args["dataset"], conf, fields_metadata)
+    dataset = read_dataset(parsed_args, conf, fields_metadata)
     
     # Generate various output files
     for role in ("phenotypes", "covariates", "confounders", "treatments")

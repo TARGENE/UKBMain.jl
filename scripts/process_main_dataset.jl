@@ -16,6 +16,9 @@ function parse_commandline()
             help = "output prefix"
             default = "processed"
             arg_type = String
+        "--withdrawal-list"
+            help = "Path to UKB withdrawal list"
+            arg_type = String
     end
 
     return parse_args(s)
