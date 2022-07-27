@@ -17,7 +17,8 @@ using DataFrames
     binary_phenotypes_outfile = string(parsed_args["out-prefix"], ".binary.phenotypes.csv")
     binary_phenotypes = CSV.read(binary_phenotypes_outfile, DataFrame)
     # Check columns
-    @test names(binary_phenotypes) == ["1707_1",
+    @test names(binary_phenotypes) == ["SAMPLE_ID",
+                                "1707_1",
                                 "1707_2",
                                 "1777_1",
                                 "40006_C43",
@@ -35,7 +36,7 @@ using DataFrames
                                 "41202 | 41204_Block A30-A49",
                                 "41202 | 41204_K44",
                                 "41202 | 41204_G20"]
-    @test size(binary_phenotypes) == (10, 18)
+    @test size(binary_phenotypes) == (10, 19)
 
     # 1707 is a categorical field, 2 codings are queried
     @test binary_phenotypes[!, "1707_1"] == [1, 0, 1, 1, 0, 1, 0, 1, 0, 0]
@@ -73,14 +74,15 @@ using DataFrames
 
     continuous_phenotypes_outfile = string(parsed_args["out-prefix"], ".continuous.phenotypes.csv")
     continuous_phenotypes = CSV.read(continuous_phenotypes_outfile, DataFrame)
-    @test names(continuous_phenotypes) == ["1408-0.0",
+    @test names(continuous_phenotypes) == ["SAMPLE_ID",
+                                           "1408-0.0",
                                            "1727-0.0",
                                            "1379-0.0",
                                            "1329-0.0",
                                            "1339-0.0",
                                            "30270-0.0",
                                            "1548-0.0"]
-    @test size(continuous_phenotypes) == (10, 7)
+    @test size(continuous_phenotypes) == (10, 8)
 
     # 1408 is an ordinal field
     # Negative values are declared missing and other values forwarded
@@ -104,13 +106,14 @@ using DataFrames
     confounders_outfile = string(parsed_args["out-prefix"], ".confounders.csv")
     confounders = CSV.read(confounders_outfile, DataFrame)
     # Check columns
-    @test names(confounders) == ["21000_White",
+    @test names(confounders) == ["SAMPLE_ID",
+                                 "21000_White",
                                  "21000_Mixed",
                                  "21000_Asian",
                                  "21000_Black",
                                  "21000_Chinese",
                                  "21000_Other"]
-    @test size(confounders) == (10, 6)
+    @test size(confounders) == (10, 7)
     @test confounders[!, "21000_White"] == [1, 0, 0, 0, 1, 1, 1, 1, 1, 1]
     @test confounders[!, "21000_Mixed"] == [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
     @test confounders[!, "21000_Asian"] == [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
@@ -124,8 +127,8 @@ using DataFrames
     covariates_outfile = string(parsed_args["out-prefix"], ".covariates.csv")
     covariates = CSV.read(covariates_outfile, DataFrame)
 
-    @test names(covariates) == ["22001_Female", "21003-0.0"]
-    @test size(covariates) == (10, 2)
+    @test names(covariates) == ["SAMPLE_ID", "22001_Female", "21003-0.0"]
+    @test size(covariates) == (10, 3)
     @test covariates[!, "22001_Female"] == [0, 1, 1, 1, 0, 0, 1,0, 0, 0]
     @test covariates[!, "21003-0.0"] == [64, 42,44, 46, 49, 57, 45, 57, 42, 61]
     rm(covariates_outfile)
@@ -149,16 +152,16 @@ end
 
     binary_phenotypes_outfile = string(parsed_args["out-prefix"], ".binary.phenotypes.csv")
     binary_phenotypes = CSV.read(binary_phenotypes_outfile, DataFrame)
-    @test size(binary_phenotypes) == (1, 18)
+    @test size(binary_phenotypes) == (1, 19)
     continuous_phenotypes_outfile = string(parsed_args["out-prefix"], ".continuous.phenotypes.csv")
     continuous_phenotypes = CSV.read(continuous_phenotypes_outfile, DataFrame)
-    @test size(continuous_phenotypes) == (1, 7)
+    @test size(continuous_phenotypes) == (1, 8)
     rm(binary_phenotypes_outfile)
     rm(continuous_phenotypes_outfile)
 
     covariates_outfile = string(parsed_args["out-prefix"], ".covariates.csv")
     covariates = CSV.read(covariates_outfile, DataFrame)
-    @test size(covariates) == (1, 1)
+    @test size(covariates) == (1, 2)
     rm(covariates_outfile)
 
     confounders_outfile = string(parsed_args["out-prefix"], ".confounders.csv")

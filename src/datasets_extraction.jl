@@ -79,6 +79,7 @@ function read_dataset(parsed_args, conf, fields_metadata)
         @info "Subsetting dataset."
         field_yaml_entries = conf["subset"]
         filter_columns = UKBMain.role_dataframe(field_yaml_entries, dataset, fields_metadata)
+        select!(filter_columns, Not(:SAMPLE_ID))
         dataset = hcat(dataset, filter_columns)
         dataset = subset(dataset, (Symbol(name) => x -> x .=== true for name in names(filter_columns))...)
     end
@@ -91,7 +92,7 @@ function read_dataset(parsed_args, conf, fields_metadata)
 end
 
 function role_dataframe(field_yaml_entries, dataset, fields_metadata)
-    output = DataFrame()
+    output = DataFrame(SAMPLE_ID=dataset[:, :eid])
     for entry in field_yaml_entries
         # The entry could be any of: Vector | Integer | Dict
         entry_output = build_from_yaml_entry(entry, dataset, fields_metadata)
@@ -124,7 +125,7 @@ function filter_and_extract(parsed_args)
             if role == "phenotypes"
                 binary_cols = [colname for colname in names(output) if isbinary(eltype(output[!, colname]))]
                 continuous_cols = [colname for colname in names(output) if !(colname ∈ binary_cols)]
-                CSV.write(string(parsed_args["out-prefix"], ".binary.", role, ".csv"), output[!, binary_cols])
+                CSV.write(string(parsed_args["out-prefix"], ".binary.", role, ".csv"), output[!, vcat("SAMPLE_ID", binary_cols)])
                 CSV.write(string(parsed_args["out-prefix"], ".continuous.", role, ".csv"), output[!, continuous_cols])
             else
                 CSV.write(string(parsed_args["out-prefix"], ".", role, ".csv"), output)
