@@ -2,3 +2,7 @@
 *.jl.cov
 *.jl.mem
 /docs/build/
+
+test/fields_metadata.txt
+test/ukb_datacoding_6.tsv
+test/ukb_datacoding_19.tsv
