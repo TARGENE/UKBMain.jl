@@ -1,4 +1,33 @@
+function selectable_indices(potential_coding_indexes, encoding)
+    coding_indexes = Int[]
+    for index in potential_coding_indexes
+        if encoding[index, :selectable] == "Y"
+            push!(coding_indexes, index)
+        end
+    end
+    return coding_indexes
+end
 
+function selectable_codings(coding, encoding)
+    if occursin("-", coding)
+        first, last = split(coding, "-")
+        first_index = findfirst(x -> startswith(x.coding, first), eachrow(encoding))
+        last_index = findlast(x -> startswith(x.coding, last), eachrow(encoding))
+        coding_indexes = selectable_indices(first_index:last_index, encoding)
+    else
+        coding_index = findfirst(x -> x.coding == coding, eachrow(encoding))
+        @assert coding_index !== nothing "Coding $coding does not exist"
+        if encoding[coding_index, :selectable] == "Y"
+            coding_indexes = [coding_index]
+        else
+            potential_coding_indexes = findall(x -> startswith(x.coding, coding), eachrow(encoding))
+            coding_indexes = selectable_indices(potential_coding_indexes, encoding)
+        end
+    end
+    return encoding[coding_indexes, :coding]
+end
+
+test = ["A22",	"A220","A221","A222","A23"]
 function check_categorical_entries(entry)
     @assert isa(entry, Dict) "Required `codings` key for entry: $(entry)"
     @assert haskey(entry, "codings") "Required `codings` key for entry: $(entry.field)"

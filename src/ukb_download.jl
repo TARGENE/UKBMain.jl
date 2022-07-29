@@ -42,9 +42,7 @@ end
 read_datacoding(input) = CSV.read(input, DataFrame)
 
 
-function download_and_read_codings()
-    download_datacoding_6()
-    download_datacoding_19()
-
-    return Dict(6=>read_datacoding_6(), 19 => read_datacoding_19())
+function download_and_read_datacoding(id)
+    download_datacoding(id)
+    return CSV.read(default_coding_path(id), DataFrame)
 end

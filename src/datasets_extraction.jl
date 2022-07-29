@@ -66,6 +66,7 @@ function _build_from_yaml_entry(entry, dataset, fields_metadata)
         return process_ordinal(dataset, entry)
     # Categorical data: all processed in the same way
     elseif field_metadata.value_type ∈ (21, 22)
+        encoding = download_and_read_datacoding(field_metadata.encoding_id)
         return process_binary(dataset, entry)
     else
         throw(ArgumentError(string("Sorry I currently don't know how to process field: ", entry)))
@@ -85,7 +86,7 @@ function read_dataset(parsed_args, conf, fields_metadata)
     end
     if parsed_args["withdrawal-list"] !== nothing
         @info "Removing individuals from withdrawal-list"
-        withdrawal_list = Set(readdlm(parsed_args["withdrawal-list"]))
+        withdrawal_list = Set(CSV.read(parsed_args["withdrawal-list"], DataFrame; header=false)[!, 1])
         dataset = subset(dataset, :eid => ByRow(x -> !(x ∈ withdrawal_list)))
     end
     return dataset
@@ -134,7 +135,7 @@ function filter_and_extract(parsed_args)
     end
 
     # Write sample ids
-    writedlm(string(parsed_args["out-prefix"], ".sample_ids.txt"), dataset.eid)
+    CSV.write(string(parsed_args["out-prefix"], ".sample_ids.txt"), dataset[!,[:eid]]; header=false)
 end
 
 
