@@ -19,9 +19,40 @@ phenotypes:
     codings:  1
   - field: 40006
     codings:
-      - [C43, Block D37-D48, D41, C34, D06, D05, D04, D03, Block C50-C50, Block C81-C96, C20]
-      - [Block C43-C44, C44, Block C64-C68, Block D00-D09, Block C15-C26, C67, C64, C61, C18]
-      - [C83, Block C30-C39, C56, C54, C50, Block C00-C14, Block C51-C58, Block C60-C63, Block D10-D36]
+      - [C20, C64, C61, C56]
+      - any: [C430, C431, C432, C433, C434, C435, C436, C437, C438", C439]
+        name: C43
+      - any: [D410, D411,	D412,	D413,	D414,	D417,D419]
+        name: D41
+      - any: [C340, C341, C342, C343, C348, C349]
+        name: C34
+      - any: [D060, D061, D067, D069]
+        name: D06
+      - any: [D050, D051, D057, D059]
+        name: D05
+      - any: [D040, D041, D042,	D043,	D044, D045, D046,	D047, D048, D049]
+        name: D04
+      - any: [D030, D031, D032, D033, D034, D035, D036, D037, D038, D039]
+        name: D03
+      - any: [C670, C671, C672, C673, C674, C675, C676, C677, C678, C679]
+        name: C67
+      - any: [C180, C181, C182, C183, C184, C185, C186, C187, C188, C189]
+        name: C18
+      - any: [C830, C831, C832, C833, C834, C835, C836, C837, C838, C839]
+        name: C83
+      - any: [C540, C541, C542, C543, C548, C549]
+        name: C54
+      - any: [C500, C501, C502, C503, C504, C505, C506, C508, C509]
+        name: C50
+      - any: [C440, C441, C442, C443, C444, C445, C446, C447, C448, C449]
+        name: C44
+      - any: [D370, D371, D372, D373, D374, D375, D376, D377, D379, D380, D381, D382, D383, D384, D385, D386, D390, D391, D392, D397, D399, D400, D401, D407, D409, D410, D411, D412, D413, D414, D417, D419, D420, D421, D429, D430, D431, D432, D433, D434, D437, D439, D440, D441, D442, D443, D444, D445, D446, D447, D448, D449, D45, D460, D461, D462, D463, D464, D465, D466, D467, D469, D470, D471, D472, D473, D474, D475, D477, D479, D480, D481, D482, D483, D484, D485, D486, D487, D489]
+        name: Block D37-D48
+      - any: [C500, C501, C502, C503, C504, C505, C506, C508, C509]
+        name: C50
+      - [Block C50-C50, Block C81-C96]
+      - [Block C43-C44, Block C64-C68, Block D00-D09, Block C15-C26]
+      - [Block C30-C39, Block C00-C14, Block C51-C58, Block C60-C63, Block D10-D36]
   - field: 20002
     codings:
       - [1674, 1065, 1066, 1067]
