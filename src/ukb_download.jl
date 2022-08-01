@@ -39,10 +39,7 @@ function download_datacoding(id; output=default_coding_path(id))
                 "Upgrade-Insecure-Requests"=> "1",
         ),
             Dict("id"=>string(id));
-            response_stream=io,
-            retry = true,
-            retries = 3,
-            retry_non_idempotent = true
+            response_stream=io
         )
     end
 end
