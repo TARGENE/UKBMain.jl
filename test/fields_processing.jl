@@ -1,7 +1,7 @@
 using Test
 using UKBMain
 
-@testet "Test selectable_codings" begin
+@testset "Test selectable_codings" begin
     encoding = UKBMain.download_and_read_datacoding(19)
     coding = "A34"
     result = UKBMain.selectable_codings(coding, encoding)
