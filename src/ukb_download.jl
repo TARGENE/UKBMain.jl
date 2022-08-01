@@ -2,7 +2,12 @@
 const CONTENT_LENGTH = Dict(
     6 => 4,
     19 => 5,
-    100377 => 9
+    100377 => 9,
+    100430 => 9,
+    100349 => 9,
+    7 => 4,
+    1001 => 7,
+    9 => 4
 )
 
 download_fields_metadata(;output="fields_metadata.txt") = 
@@ -34,7 +39,10 @@ function download_datacoding(id; output=default_coding_path(id))
                 "Upgrade-Insecure-Requests"=> "1",
         ),
             Dict("id"=>string(id));
-            response_stream=io
+            response_stream=io,
+            retry = true,
+            retries = 3,
+            retry_non_idempotent = true
         )
     end
 end
@@ -43,6 +51,8 @@ read_datacoding(input) = CSV.read(input, DataFrame)
 
 
 function download_and_read_datacoding(id)
-    download_datacoding(id)
+    if !isfile(default_coding_path(id))
+        download_datacoding(id)
+    end
     return CSV.read(default_coding_path(id), DataFrame)
 end

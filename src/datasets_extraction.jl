@@ -64,10 +64,21 @@ function _build_from_yaml_entry(entry, dataset, fields_metadata)
     # Categorical data but considered ordinal
     elseif field_id ∈ ORDINAL_FIELDS
         return process_ordinal(dataset, entry)
-    # Categorical data: all processed in the same way
-    elseif field_metadata.value_type ∈ (21, 22)
+    # Categorical data that is arrayed even if not 
+    # described as such by the field_metadata
+    elseif field_metadata.field_id ∈ (40006, 20002, 41202, 41204)
         encoding = download_and_read_datacoding(field_metadata.encoding_id)
-        return process_binary(dataset, entry)
+        return process_binary_arrayed(dataset, entry, encoding)
+    # Other categorical data: only the first column is used
+    elseif field_metadata.value_type ∈ (21, 22)
+        # if codings are specified, we fallback to binary treatments
+        if entry isa Dict && haskey(entry, "codings")
+            encoding = download_and_read_datacoding(field_metadata.encoding_id)
+            return process_binary_arrayed(dataset, entry, encoding)
+        # Otherwise, values are one hot encoded
+        else
+            return process_categorical(dataset, entry)
+        end
     else
         throw(ArgumentError(string("Sorry I currently don't know how to process field: ", entry)))
     end
@@ -102,9 +113,9 @@ function role_dataframe(field_yaml_entries, dataset, fields_metadata)
     return output
 end
 
+isbinary(::Type{Union{Missing, Bool}}) = true
 isbinary(::Type{Bool}) = true
-isbinary(::Type{Union{Bool, Missing}}) = true
-isbinary(::Type{<:Any}) = false
+isbinary(val) = false
 
 function filter_and_extract(parsed_args)
     # Read configuration

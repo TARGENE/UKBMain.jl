@@ -5,14 +5,12 @@ phenotypes:
   - field: [1379, 1329, 1339]
   - field: 30270
   - 1548
-  # Categorical traits must provide codings
+  # Categorical traits 
   - field: 1707
-    codings: [1, 2]
   - field: 1777
-    codings: 1
   - field: 40006
     codings:
-      - [C43, Block D37-D48, D41]
+      - [C43, D37-D48, D41]
       - C44
   - field: 20002
     codings:
@@ -21,29 +19,13 @@ phenotypes:
         name: 1762
   - field: 41202 | 41204
     codings:
-      - ["Block J40-J47", "O26", "O20"]
-      - ["Block A30-A49", "K44"]
+      - ["J40-J47", "O26", "O20"]
+      - ["A30-A49", "K44"]
       - "G20"
 
 confounders:
   - field: 21000
-    codings:
-      - any: [1, 1001, 1002, 1003]
-        name: White
-      - any: [2, 2001, 2002, 2003, 2004]
-        name: Mixed
-      - any: [3, 3001, 3002, 3003, 3004]
-        name: Asian
-      - any: [4, 4001, 4002, 4003]
-        name: Black
-      - any: [5]
-        name: Chinese
-      - any: [6]
-        name: Other
 
 covariates:
   - field: 22001
-    codings:
-      - any: [0]
-        name: Female
   - field: 21003

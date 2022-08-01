@@ -3,6 +3,20 @@ using UKBMain
 using CSV
 using DataFrames
 
+
+function test_output_with_missing(expected, output, colname, encoding_values)
+    for (i, encoding_value) in enumerate(encoding_values)
+        for j in 1:10
+            value = output[!, "$(colname)__$(encoding_value)"][j]
+            if value isa Missing
+                @test expected[i][j] === missing
+            else
+                @test expected[i][j] == value
+            end
+        end
+    end
+end
+
 @testset "Test main with phenotypes, covariates and confounders" begin
     parsed_args = Dict(
         "dataset" => joinpath("data", "ukb_sample_traits.csv"),
@@ -17,37 +31,51 @@ using DataFrames
     binary_phenotypes_outfile = string(parsed_args["out-prefix"], ".binary.phenotypes.csv")
     binary_phenotypes = CSV.read(binary_phenotypes_outfile, DataFrame)
     # Check columns
-    @test names(binary_phenotypes) == ["SAMPLE_ID",
-                                "1707_1",
-                                "1707_2",
-                                "1777_1",
-                                "40006_C43",
-                                "40006_Block D37-D48",
-                                "40006_D41",
-                                "40006_C44",
-                                "20002_1674",
-                                "20002_1065",
-                                "20002_1066",
-                                "20002_1067",
-                                "20002_1762",
-                                "41202 | 41204_Block J40-J47",
-                                "41202 | 41204_O26",
-                                "41202 | 41204_O20",
-                                "41202 | 41204_Block A30-A49",
-                                "41202 | 41204_K44",
-                                "41202 | 41204_G20"]
-    @test size(binary_phenotypes) == (10, 19)
+    @test names(binary_phenotypes) == 
+                ["SAMPLE_ID",
+                 "1707-0.0__1",
+                 "1707-0.0__2",
+                 "1707-0.0__3",
+                 "1777-0.0__0",
+                 "1777-0.0__1",
+                 "40006_C43",
+                 "40006_D37-D48",
+                 "40006_D41",
+                 "40006_C44",
+                 "20002_1674",
+                 "20002_1065",
+                 "20002_1066",
+                 "20002_1067",
+                 "20002_1762",
+                 "41202 | 41204_J40-J47",
+                 "41202 | 41204_O26",
+                 "41202 | 41204_O20",
+                 "41202 | 41204_A30-A49",
+                 "41202 | 41204_K44",
+                 "41202 | 41204_G20"]
+    @test size(binary_phenotypes) == (10, 21)
 
-    # 1707 is a categorical field, 2 codings are queried
-    @test binary_phenotypes[!, "1707_1"] == [1, 0, 1, 1, 0, 1, 0, 1, 0, 0]
-    @test binary_phenotypes[!, "1707_2"] == [0, 0, 0, 0, 1, 0, 1, 0, 0, 0]
-    
+    # 1707 is a categorical field
+    expected = (
+        [1, 1, 0, 0, missing, missing, 0, 0, 1, 0],
+        [0, 0, 1, 1, missing, missing, 0, 1, 0, 0],
+        [0, 0, 0, 0, missing, missing, 1, 0, 0, 1]
+    )
+    test_output_with_missing(expected, binary_phenotypes, "1707-0.0", ("1", "2", "3"))
+
+    # 1777 is a categorical field
+    expected = (
+        [0, 1, 1, missing, missing, missing, 0, 1, 0, 0],
+        [1, 0, 0, missing, missing, missing, 1, 0, 1, 1]
+    )
+    test_output_with_missing(expected, binary_phenotypes, "1777-0.0", ("0", "1"))
+
     # 40006 is a categorical trait
     # In theory all columns will contain at least one non-missing value
     # In this example, only the 3 first columns contain non-missing values
-    @test binary_phenotypes[:, "40006_Block D37-D48"] == [true, false, false, true, false, true, false, false, false, false]
+    @test binary_phenotypes[:, "40006_D37-D48"] == [true, false, false, true, false, true, true, false, false, false]
     @test binary_phenotypes[:, "40006_C43"] == [true, false, false, false, false, false, true, false, false, false]
-    @test binary_phenotypes[:, "40006_D41"] == [false, false, false, false, false, false, true, false, false, false]
+    @test binary_phenotypes[:, "40006_D41"] == [false, false, false, false, false, true, true, false, false, false]
     @test binary_phenotypes[:, "40006_C44"] == [true, false, false, true, false, false, false, false, false, false]
 
     # 20002 is a categorical trait 
@@ -63,12 +91,12 @@ using DataFrames
     # 41202 | 41204 both are categorical
     # The presence of a disease in any of those fields results as the
     # disease considered declared
-    @test binary_phenotypes[:, "41202 | 41204_Block J40-J47"] == [false, false, false, false, false, false, false, false, false, false]
-    @test binary_phenotypes[:, "41202 | 41204_O26"] == [true, false, false, false, false, false, false, false, false, false]
-    @test binary_phenotypes[:, "41202 | 41204_O20"] == [false, false, false, false, false, false, false, false, false, false]
-    @test binary_phenotypes[:, "41202 | 41204_Block A30-A49"] == [false, false, false, false, false, false, false, false, false, false]
-    @test binary_phenotypes[:, "41202 | 41204_K44"] == [true, false, true, false, false, false, false, false, false, false]
-    @test binary_phenotypes[:, "41202 | 41204_G20"] == [false, false, false, false, false, false, false, false, false, true]
+    @test binary_phenotypes[:, "41202 | 41204_J40-J47"] == [false, false, false, true, false, false, false, false, false, false]
+    @test binary_phenotypes[:, "41202 | 41204_O26"] == [false, true, false, false, false, false, false, false, false, false]
+    @test binary_phenotypes[:, "41202 | 41204_O20"] == [false, true, false, false, false, false, false, false, false, false]
+    @test binary_phenotypes[:, "41202 | 41204_A30-A49"] == [false, false, false, false, false, false, false, false, false, true]
+    @test binary_phenotypes[:, "41202 | 41204_K44"] == [false, false, false, false, false, false, false, false, false, false]
+    @test binary_phenotypes[:, "41202 | 41204_G20"] == [false, false, false, false, false, false, false, false, true, true]
     
     rm(binary_phenotypes_outfile)
 
@@ -107,19 +135,15 @@ using DataFrames
     confounders = CSV.read(confounders_outfile, DataFrame)
     # Check columns
     @test names(confounders) == ["SAMPLE_ID",
-                                 "21000_White",
-                                 "21000_Mixed",
-                                 "21000_Asian",
-                                 "21000_Black",
-                                 "21000_Chinese",
-                                 "21000_Other"]
-    @test size(confounders) == (10, 7)
-    @test confounders[!, "21000_White"] == [1, 0, 0, 0, 1, 1, 1, 1, 1, 1]
-    @test confounders[!, "21000_Mixed"] == [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
-    @test confounders[!, "21000_Asian"] == [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
-    @test confounders[!, "21000_Other"] == [0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
-    @test confounders[!, "21000_Chinese"] == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    @test confounders[!, "21000_Black"] == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                                 "21000-0.0__2",
+                                 "21000-0.0__6",
+                                 "21000-0.0__1001",
+                                 "21000-0.0__3002"]
+    @test size(confounders) == (10, 5)
+    @test confounders[!, "21000-0.0__1001"] == [1, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+    @test confounders[!, "21000-0.0__2"] == [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+    @test confounders[!, "21000-0.0__3002"] == [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+    @test confounders[!, "21000-0.0__6"] == [0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
 
     rm(confounders_outfile)
 
@@ -127,9 +151,16 @@ using DataFrames
     covariates_outfile = string(parsed_args["out-prefix"], ".covariates.csv")
     covariates = CSV.read(covariates_outfile, DataFrame)
 
-    @test names(covariates) == ["SAMPLE_ID", "22001_Female", "21003-0.0"]
-    @test size(covariates) == (10, 3)
-    @test covariates[!, "22001_Female"] == [0, 1, 1, 1, 0, 0, 1,0, 0, 0]
+    @test names(covariates) == ["SAMPLE_ID",
+                                "22001-0.0__0",
+                                "22001-0.0__1",
+                                "21003-0.0"]
+    @test size(covariates) == (10, 4)
+    expected = (
+        [0, 1, 1, 1, 0, 0, 1, 0, 0, missing],
+        [1, 0, 0, 0, 1, 1, 0, 1, 1, missing]
+    )
+    test_output_with_missing(expected, covariates, "22001-0.0", ("0", "1"))
     @test covariates[!, "21003-0.0"] == [64, 42,44, 46, 49, 57, 45, 57, 42, 61]
     rm(covariates_outfile)
 
@@ -152,7 +183,7 @@ end
 
     binary_phenotypes_outfile = string(parsed_args["out-prefix"], ".binary.phenotypes.csv")
     binary_phenotypes = CSV.read(binary_phenotypes_outfile, DataFrame)
-    @test size(binary_phenotypes) == (1, 19)
+    @test size(binary_phenotypes) == (1, 18)
     continuous_phenotypes_outfile = string(parsed_args["out-prefix"], ".continuous.phenotypes.csv")
     continuous_phenotypes = CSV.read(continuous_phenotypes_outfile, DataFrame)
     @test size(continuous_phenotypes) == (1, 8)

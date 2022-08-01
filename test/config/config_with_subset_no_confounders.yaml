@@ -5,14 +5,12 @@ phenotypes:
   - field: [1379, 1329, 1339]
   - field: 30270
   - 1548
-  # Categorical traits must provide codings
+  # Categorical traits
   - field: 1707
-    codings: [1, 2]
   - field: 1777
-    codings: 1
   - field: 40006
     codings:
-      - [C43, Block D37-D48, D41]
+      - [C43, D37-D48, D41]
       - C44
   - field: 20002
     codings:
@@ -21,8 +19,8 @@ phenotypes:
         name: 1762
   - field: 41202 | 41204
     codings:
-      - ["Block J40-J47", "O26", "O20"]
-      - ["Block A30-A49", "K44"]
+      - ["J40-J47", "O26", "O20"]
+      - ["A30-A49", "K44"]
       - "G20"
 
 covariates:
