@@ -1,31 +1,3 @@
-
-Skip to content
-Pull requests
-Issues
-Marketplace
-Explore
-@olivierlabayle
-TARGENE /
-UKBMain.jl
-Public
-
-Code
-Issues 1
-Pull requests 1
-Actions
-Projects
-Wiki
-Security
-Insights
-
-    Settings
-
-UKBMain.jl/config/config.yaml
-Olivier Labayle more changes and cleanup
-Latest commit 56c4c8d 10 days ago
-History
-0 contributors
-141 lines (139 sloc) 8.87 KB
 phenotypes:
   # Some fields that currently cause issues:
   # 1695 ->> point to -1 either as a node_id or a parent_id
