@@ -26,21 +26,14 @@ function download_datacoding(id; output=default_coding_path(id))
                 "Accept"=>"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                 "Accept-Encoding"=>"gzip, deflate, br",
                 "Accept-Language"=>"en-GB,en;q=0.5",
-                "Connection"=>"keep-alive",
                 "Content-Length"=> string(CONTENT_LENGTH[id]),
                 "Content-Type"=>"application/x-www-form-urlencoded",
                 "Host"=> "biobank.ndph.ox.ac.uk",
                 "Origin"=>"https://biobank.ndph.ox.ac.uk",
                 "Referer"=> string("https://biobank.ndph.ox.ac.uk/showcase/coding.cgi?id=", id),
-                "Sec-Fetch-Dest"=>"document",
-                "Sec-Fetch-Mode"=> "navigate",
-                "Sec-Fetch-Site"=> "same-origin",
-                "Sec-Fetch-User"=>"?1",
-                "Upgrade-Insecure-Requests"=> "1",
         ),
             Dict("id"=>string(id));
             response_stream=io,
-            connection_limit=50,
         )
     end
 end
