@@ -45,5 +45,10 @@ function download_and_read_datacoding(id)
     if !isfile(default_coding_path(id))
         download_datacoding(id)
     end
-    return CSV.read(default_coding_path(id), DataFrame)
+    data = CSV.read(default_coding_path(id), DataFrame)
+    if size(data, 1) == 0
+        return download_and_read_datacoding(id)
+    else
+        return data
+    end
 end
