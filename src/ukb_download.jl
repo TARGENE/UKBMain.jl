@@ -34,6 +34,7 @@ function download_datacoding(id; output=default_coding_path(id))
         ),
             Dict("id"=>string(id));
             response_stream=io,
+            readtimeout=20
         )
     end
 end
