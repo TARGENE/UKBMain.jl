@@ -4,16 +4,21 @@ using CSV
 using DataFrames
 
 
+function test_column_with_missing(expected, output, colname)
+    for j in eachindex(expected)
+        value = output[!, colname][j]
+        if value isa Missing
+            @test expected[j] === missing
+        else
+            @test expected[j] == value
+        end
+    end
+end
+
+
 function test_output_with_missing(expected, output, colname, encoding_values)
     for (i, encoding_value) in enumerate(encoding_values)
-        for j in 1:10
-            value = output[!, "$(colname)__$(encoding_value)"][j]
-            if value isa Missing
-                @test expected[i][j] === missing
-            else
-                @test expected[i][j] == value
-            end
-        end
+        test_column_with_missing(expected[i], output, "$(colname)__$(encoding_value)")
     end
 end
 
@@ -115,7 +120,7 @@ end
     # 1408 is an ordinal field
     # Negative values are declared missing and other values forwarded
     @test 1408 ∈ UKBMain.ORDINAL_FIELDS
-    expected_output = [missing, missing, missing, 3, 3, 1, 3, 2, 3, 1]
+    expected_output = [missing, missing, missing, 3, 3, 1, 3, 2, 3, missing]
     for index in eachindex(expected_output)
         if expected_output[index] === missing
             @test continuous_phenotypes[index, "1408-0.0"] === expected_output[index]
@@ -138,12 +143,14 @@ end
                                  "21000-0.0__2",
                                  "21000-0.0__6",
                                  "21000-0.0__1001",
-                                 "21000-0.0__3002"]
-    @test size(confounders) == (10, 5)
-    @test confounders[!, "21000-0.0__1001"] == [1, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+                                 "21000-0.0__3002",
+                                 "21000-0.0__4001"]
+    @test size(confounders) == (10, 6)
+    @test confounders[!, "21000-0.0__1001"] == [1, 0, 0, 0, 1, 1, 1, 1, 1, 0]
     @test confounders[!, "21000-0.0__2"] == [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
     @test confounders[!, "21000-0.0__3002"] == [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
     @test confounders[!, "21000-0.0__6"] == [0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+    @test confounders[!, "21000-0.0__4001"] == [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
 
     rm(confounders_outfile)
 
@@ -202,6 +209,48 @@ end
     sample_ids = CSV.read(sample_ids_file, DataFrame, header=false)[!, 1]
     @test sample_ids == [2]
     rm(sample_ids_file)
+end
+
+@testset "Test with treatments" begin
+    parsed_args = Dict(
+        "dataset" => joinpath("data", "ukb_sample_traits.csv"),
+        "out-prefix" => "processed",
+        "conf" => joinpath("config", "config_with_treatments.yaml"),
+        "withdrawal-list" => joinpath("data", "withdrawal_list.txt")
+    )
     
+    filter_and_extract(parsed_args)
+
+    binary_phenotypes_outfile = string(parsed_args["out-prefix"], ".binary.phenotypes.csv")
+    binary_phenotypes = CSV.read(binary_phenotypes_outfile, DataFrame)
+    @test size(binary_phenotypes) == (9, 19)
+    continuous_phenotypes_outfile = string(parsed_args["out-prefix"], ".continuous.phenotypes.csv")
+    continuous_phenotypes = CSV.read(continuous_phenotypes_outfile, DataFrame)
+    @test size(continuous_phenotypes) == (9, 3)
+    rm(binary_phenotypes_outfile)
+    rm(continuous_phenotypes_outfile)
+
+    covariates_outfile = string(parsed_args["out-prefix"], ".covariates.csv")
+    @test !isfile(covariates_outfile)
+
+    confounders_outfile = string(parsed_args["out-prefix"], ".confounders.csv")
+    confounders = CSV.read(confounders_outfile, DataFrame)
+    @test size(confounders) == (9, 6)
+    rm(confounders_outfile)
+
+    treatments_outfile = string(parsed_args["out-prefix"], ".treatments.csv")
+    treatments = CSV.read(treatments_outfile, DataFrame)
+    expected = [1, 0, 0, 0, 1, 1, 1, 1, missing]
+    test_column_with_missing(expected, treatments, "22001-0.0")
+    expected = ["White", "Mixed", "Asian", "6", "White", "White", "White", "White", "OTHER"]
+    test_column_with_missing(expected, treatments, "21000-0.0")
+    expected = [missing, missing, missing, 3, 3, 1, 2, 3, missing]
+    test_column_with_missing(expected, treatments, "1408-0.0")
+    rm(treatments_outfile)
+
+    sample_ids_file = string(parsed_args["out-prefix"], ".sample_ids.txt")
+    sample_ids = CSV.read(sample_ids_file, DataFrame, header=false)[!, 1]
+    @test sample_ids == [1, 2, 3, 4, 5, 6, 8, 9, 10]
+    rm(sample_ids_file)
 
 end

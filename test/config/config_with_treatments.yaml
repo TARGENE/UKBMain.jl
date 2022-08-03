@@ -1,0 +1,39 @@
+phenotypes:
+  # Multiple traits can be given as a list to make it more readable
+  # with or without the keyword "field"
+  - [1408, 1727]
+  # Categorical traits 
+  - field: 1707
+  - field: 40006
+    codings:
+      - [C43, D37-D48, D41]
+      - C44
+  - field: 20002
+    codings:
+      - [1674, 1065, 1066, 1067]
+      - any: [1452, 1453, 1454, 1455, 1548, 1549, 1550, 1625, 1660, 1661, 1667, 1680]
+        name: 1762
+  - field: 41202 | 41204
+    codings:
+      - ["J40-J47", "O26", "O20"]
+      - ["A30-A49", "K44"]
+      - "G20"
+
+confounders:
+  - field: 21000
+
+treatments:
+  - field: 22001
+  - field: 21000
+    codings:
+      - any: [1, 1001, 1002, 1003]
+        name: White
+      - any: [2, 2001, 2002, 2003, 2004]
+        name: Mixed
+      - any: [3, 3001, 3002, 3003, 3004]
+        name: Asian
+      - any: [5]
+        name: Chinese
+      - 6
+  - field: 1408
+
