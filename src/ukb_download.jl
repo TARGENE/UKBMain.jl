@@ -34,7 +34,8 @@ function download_datacoding(id; output=default_coding_path(id))
         ),
             Dict("id"=>string(id));
             response_stream=io,
-            readtimeout=20
+            readtimeout=20,
+            retry_non_idempotent=true
         )
     end
 end
@@ -48,6 +49,7 @@ function download_and_read_datacoding(id)
     end
     data = CSV.read(default_coding_path(id), DataFrame)
     if size(data, 1) == 0
+        sleep(5)
         return download_and_read_datacoding(id)
     else
         return data
