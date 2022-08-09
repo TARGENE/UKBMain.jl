@@ -184,3 +184,47 @@ function process_categorical(dataset, field_id)
     Xt_bool = NamedTuple{keys(Xt)}([convert(Vector{Union{Bool, Missing}}, column) for column in Xt])
     return DataFrame(Xt_bool)
 end
+
+
+missing_or_other(value::Real) = value < 0 ? missing : "OTHER"
+missing_or_other(value) = "OTHER"
+
+
+"""
+    process_categorical_treatment(dataset, entry)
+
+Only the first column `-0.0` is used to process those fields.
+"""
+function process_categorical_treatment(dataset, entry)
+    colname = entry isa Dict && haskey(entry, "field") ? 
+                Symbol(entry["field"], "-0.0") :
+                Symbol(entry, "-0.0")
+    column = dataset[!, colname]
+    if entry isa Dict && haskey(entry, "codings")
+        codings = entry["codings"]
+        mapping = Dict{Any, Any}(missing => missing)
+        for coding in codings
+            if coding isa Dict && haskey(coding, "any")
+                for elem in coding["any"]
+                    mapping[elem] = coding["name"]
+                end
+            else
+                mapping[coding] = coding
+            end
+        end
+        output = Vector{Any}(undef, size(column, 1))
+        for index in eachindex(column)
+            value = column[index]
+            if haskey(mapping, value)
+                output[index] = mapping[value]
+            else
+                output[index] = missing_or_other(value)
+            end
+        end
+    else
+        output = categorical(negative_as_missing(column))
+    end
+
+    return DataFrame(NamedTuple{(colname,)}([output]))
+
+end

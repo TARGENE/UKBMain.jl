@@ -28,30 +28,30 @@ function fieldmetadata(fields::DataFrame, entry::String)
 end
 
 
-build_from_yaml_entry(entry::Int, dataset, fields_metadata) = 
-    _build_from_yaml_entry(entry, dataset, fields_metadata)
+build_from_yaml_entry(entry::Int, dataset, fields_metadata, role) = 
+    _build_from_yaml_entry(entry, dataset, fields_metadata, role)
 
-function build_from_yaml_entry(entry::Vector, dataset, fields_metadata)
+function build_from_yaml_entry(entry::Vector, dataset, fields_metadata, role)
     output = DataFrame()
     for field_id in entry
-        field_output = _build_from_yaml_entry(field_id, dataset, fields_metadata)
+        field_output = _build_from_yaml_entry(field_id, dataset, fields_metadata, role)
         output = hcat(output, field_output)
     end
     return output
 end
 
-function build_from_yaml_entry(entry::Dict, dataset, fields_metadata)
+function build_from_yaml_entry(entry::Dict, dataset, fields_metadata, role)
     if ! haskey(entry, "codings")
-        return build_from_yaml_entry(entry["field"], dataset, fields_metadata)
+        return build_from_yaml_entry(entry["field"], dataset, fields_metadata, role)
     else
-        return _build_from_yaml_entry(entry, dataset, fields_metadata)
+        return _build_from_yaml_entry(entry, dataset, fields_metadata, role)
     end
 end
 
 get_field_id(entry) = entry 
 get_field_id(entry::Dict) = entry["field"]
 
-function _build_from_yaml_entry(entry, dataset, fields_metadata)
+function _build_from_yaml_entry(entry, dataset, fields_metadata, role)
     field_id = get_field_id(entry)
     @info string("Processing field: ", field_id)
     field_metadata = fieldmetadata(fields_metadata, field_id)
@@ -62,7 +62,7 @@ function _build_from_yaml_entry(entry, dataset, fields_metadata)
     elseif field_metadata.value_type == 11
         return process_integer(dataset, entry)
     # Categorical data but considered ordinal
-    elseif field_id ∈ ORDINAL_FIELDS
+    elseif field_metadata.field_id ∈ ORDINAL_FIELDS
         return process_ordinal(dataset, entry)
     # Categorical data that is arrayed even if not 
     # described as such by the field_metadata
@@ -71,26 +71,30 @@ function _build_from_yaml_entry(entry, dataset, fields_metadata)
         return process_binary_arrayed(dataset, entry, encoding)
     # Other categorical data: only the first column is used
     elseif field_metadata.value_type ∈ (21, 22)
-        # if codings are specified, we fallback to binary treatments
-        if entry isa Dict && haskey(entry, "codings")
-            encoding = download_and_read_datacoding(field_metadata.encoding_id)
-            return process_binary_arrayed(dataset, entry, encoding)
-        # Otherwise, values are one hot encoded
+        # Extra treatment variables are not one hot encoded
+        if role == "treatments"
+            return process_categorical_treatment(dataset, entry)
         else
-            return process_categorical(dataset, entry)
+            # if codings are specified, we fallback to binary processing
+            if entry isa Dict && haskey(entry, "codings")
+                encoding = download_and_read_datacoding(field_metadata.encoding_id)
+                return process_binary_arrayed(dataset, entry, encoding)
+            # Otherwise, values are one hot encoded
+            else
+                return process_categorical(dataset, entry)
+            end
         end
     else
-        throw(ArgumentError(string("Sorry I currently don't know how to process field: ", entry)))
+        throw(ArgumentError(string("Sorry I currently don't know how to process entry: ", entry)))
     end
 end
-
 
 function read_dataset(parsed_args, conf, fields_metadata)
     dataset = CSV.read(parsed_args["dataset"], DataFrame)
     if haskey(conf, "subset")
         @info "Subsetting dataset."
         field_yaml_entries = conf["subset"]
-        filter_columns = UKBMain.role_dataframe(field_yaml_entries, dataset, fields_metadata)
+        filter_columns = UKBMain.role_dataframe(field_yaml_entries, dataset, fields_metadata,  "subset")
         select!(filter_columns, Not(:SAMPLE_ID))
         dataset = hcat(dataset, filter_columns)
         dataset = subset(dataset, (Symbol(name) => x -> x .=== true for name in names(filter_columns))...)
@@ -103,11 +107,11 @@ function read_dataset(parsed_args, conf, fields_metadata)
     return dataset
 end
 
-function role_dataframe(field_yaml_entries, dataset, fields_metadata)
+function role_dataframe(field_yaml_entries, dataset, fields_metadata, role)
     output = DataFrame(SAMPLE_ID=dataset[:, :eid])
     for entry in field_yaml_entries
         # The entry could be any of: Vector | Integer | Dict
-        entry_output = build_from_yaml_entry(entry, dataset, fields_metadata)
+        entry_output = build_from_yaml_entry(entry, dataset, fields_metadata, role)
         output = hcat(output, entry_output)
     end
     return output
@@ -133,7 +137,7 @@ function filter_and_extract(parsed_args)
         if haskey(conf, role)
             @info string("Generating processed file for: ", role, ".")
             field_yaml_entries = conf[role]
-            output = role_dataframe(field_yaml_entries, dataset, fields_metadata)
+            output = role_dataframe(field_yaml_entries, dataset, fields_metadata, role)
             if role == "phenotypes"
                 binary_cols = [colname for colname in names(output) if isbinary(eltype(output[!, colname]))]
                 continuous_cols = [colname for colname in names(output) if !(colname ∈ binary_cols)]
