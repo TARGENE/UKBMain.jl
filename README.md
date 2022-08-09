@@ -1,8 +1,8 @@
 # UKBMain
 
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/TARGENE/TargeneCore.jl/CI/main?label=Build%20main)
-![Codecov branch](https://img.shields.io/codecov/c/github/TARGENE/TargeneCore.jl/main?label=Coverage%20main)
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/TARGENE/TargeneCore.jl)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/TARGENE/UKBMain.jl/CI/main?label=Build%20main)
+![Codecov branch](https://img.shields.io/codecov/c/github/TARGENE/UKBMain.jl/main?label=Coverage%20main)
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/TARGENE/UKBMain.jl)
 
 This package aims at providing various command line interfaces to manipulate a UKB main dataset in order to generate `phenotypes`, `confounders`, `covariates` and `treatments` files. The specification of this process is done via a YAML configuration file for which a base is provided in `config/config.yaml`.
 
