@@ -3,7 +3,6 @@ using CSV
 using DataFrames
 using CategoricalArrays
 using MLJModels
-using MLJModelInterface
 using MLJBase
 using HTTP
 using Downloads
