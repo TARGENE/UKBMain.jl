@@ -30,6 +30,7 @@ Each entry is further organised as a list of traits of interest. Depending on th
 - Ordinal variables: Some traits are declared as categorical by the UKB but an ordinal interpretation may be more appropriate. We have identified and hardcoded a list of such traits in the `ORDINAL_FIELDS` constant.
 
 For further examples, look into the `test/config` folder.
+
 ## A Typical workflow
 
 ### 1. Extract fields-list from the YAML configuration file
