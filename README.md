@@ -41,7 +41,7 @@ This is typically used before a call to `ukbconv` which requires a list of field
 julia --project --startup-file=no scripts/build_fields_list.jl --conf CONF.yaml --output OUTPUT_FIELDS_PATH
 ```
 
-### 2. Run ukbconv with the extracted fields-list 
+### 2. Run ukbconv with the extracted fields-list
 
 See the man page for ukbconv, but a typical example would be:
 
