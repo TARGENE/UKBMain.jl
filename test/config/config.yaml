@@ -1,31 +1,73 @@
-phenotypes:
-  # Multiple traits can be given as a list to make it more readable
-  # with or without the keyword "field"
-  - [1408, 1727]
-  - field: [1379, 1329, 1339]
-  - field: 30270
-  - 1548
-  # Categorical traits 
-  - field: 1707
-  - field: 1777
-  - field: 40006
-    codings:
-      - [C43, D37-D48, D41]
-      - C44
-  - field: 20002
-    codings:
-      - [1674, 1065, 1066, 1067]
-      - any: [1452, 1453, 1454, 1455, 1548, 1549, 1550, 1625, 1660, 1661, 1667, 1680]
-        name: 1762
-  - field: 41202 | 41204
-    codings:
-      - ["J40-J47", "O26", "O20"]
-      - ["A30-A49", "K44"]
-      - "G20"
+traits:
+  - fields:
+    - 1408
+    phenotypes:
+      - name: 1408
+  - fields:
+    - 1727
+    phenotypes:
+      - name: 1727
+  - fields:
+    - 1379
+    phenotypes:
+      - name: 1379
+  - fields:
+    - 1329
+    phenotypes:
+      - name: 1329
+  - fields: 1339
+    phenotypes:
+      - name: 1339
+  - fields:
+    - 30270
+    phenotypes:
+      - name: 30270
+  - fields:
+    - 1548
+    phenotypes:
+      - name: 1548
+  - fields: 1707
+    phenotypes:
+      - name: 1707
+  - fields:
+    - 1777
+    phenotypes:
+      - name: 1777  
+  # Arrayed/Instanced traits 
+  - fields: 40006
+    phenotypes:
+      - name: disease_1
+        codings: [C439, D414, C440]
+      - name: disease_2
+        codings: D487
+  - fields: 20002
+    phenotypes:
+      - name: disease_3
+        codings: 
+          - [1674, 1065, 1066, 1067]
+      - name: disease_4
+        codings: [1452, 1453, 1454, 1455, 1548, 1549, 1550, 1625, 1660, 1661, 1667, 1680]
+      - name: disease_5
+        codings: 1762
+  - fields: [41202, 41204]
+    phenotypes:
+      - name: disease_6
+        codings: ["O021", D649, "O26", "E669"]
+      - name: disease_7
+        codings: ["G20"]
+      - name: disease_8
+        codings: 
+          - "I849"
+          - "O209"
 
-confounders:
-  - field: 21000
+  - fields: 21000
+    phenotypes:
+      - name: ethnicity
 
-covariates:
-  - field: 22001
-  - field: 21003
+  - fields: 22001
+    phenotypes:
+      - name: genetic sex
+
+  - fields: 21003
+    phenotypes:
+      - name: age

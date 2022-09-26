@@ -1,118 +1,45 @@
-function selectable_indices(potential_coding_indexes, encoding)
-    coding_indexes = Int[]
-    for index in potential_coding_indexes
-        if encoding[index, :selectable] == "Y"
-            push!(coding_indexes, index)
-        end
-    end
-    return coding_indexes
+negative_as_missing(value::Real) = value < 0 ? missing : value
+negative_as_missing(value) = value
+negative_as_missing(column::AbstractVector) = [negative_as_missing(v) for v in column]
+
+only_one_field(field) = field
+function only_one_field(fields::AbstractVector)
+    @assert length(fields) == 1 "Error when processing: $fields, only one field is supported in this setting."
+    return first(fields)
 end
 
-function selectable_codings(coding, encoding)
-    if occursin("-", string(coding))
-        first, last = split(coding, "-")
-        first_index = findfirst(x -> startswith(x.coding, first), eachrow(encoding))
-        last_index = findlast(x -> startswith(x.coding, last), eachrow(encoding))
-        coding_indexes = selectable_indices(first_index:last_index, encoding)
-    else
-        coding_index = findfirst(x -> x.coding == coding, eachrow(encoding))
-        @assert coding_index !== nothing "Coding $coding does not exist"
-        if "selectable" in names(encoding)
-            if encoding[coding_index, :selectable] == "Y"
-                coding_indexes = [coding_index]
-            else
-                potential_coding_indexes = findall(x -> startswith(x.coding, coding), eachrow(encoding))
-                coding_indexes = selectable_indices(potential_coding_indexes, encoding)
-            end
-        else
-            coding_indexes = [coding_index]
-        end
-    end
-    return encoding[coding_indexes, :coding]
-end
-
-function check_categorical_entries(entry)
-    @assert isa(entry, Dict) "Required `codings` key for entry: $(entry)"
-    @assert haskey(entry, "codings") "Required `codings` key for entry: $(entry.field)"
-end
-
-function update_phenotypes_and_indices!(phenotypes::Vector, indices::Dict, encoding, coding) 
-    push!(phenotypes, coding)
-    index = size(phenotypes, 1)
-    for scoding in selectable_codings(coding, encoding)
-        if haskey(indices, scoding)
-            push!(indices[scoding], index)
-        else
-            indices[scoding] = [index]
-        end
-    end
-end
-
-function update_phenotypes_and_indices!(phenotypes::Vector, indices::Dict, encoding, coding_list::Vector)
-    for coding in coding_list
-        update_phenotypes_and_indices!(phenotypes, indices, encoding, coding)
-    end
-end
-
-function update_phenotypes_and_indices!(phenotypes::Vector, indices::Dict, encoding, coding_dict::Dict) 
-    @assert(all(haskey(coding_dict, key) for key in ("any", "name")),
-            "Codings with attributes are restricted to or statements having both `any` and `name` keys.")
-    
-    push!(phenotypes, coding_dict["name"])
-    index = size(phenotypes, 1)
-    for coding in coding_dict["any"]
-        for scoding in selectable_codings(coding, encoding)
-            if haskey(indices, scoding)
-                push!(indices[scoding], index)
-            else
-                indices[scoding] = [index]
-            end
-        end
-    end
-end
-
-function phenotypes_and_indices(codings::Vector, encoding)
-    phenotypes = []
-    indices = Dict()
-    for coding in codings
-        update_phenotypes_and_indices!(phenotypes, indices, encoding, coding)
-    end
-
-    return phenotypes, indices
-end
-
-"""
-`codings` is a single value
-"""
-function phenotypes_and_indices(coding, encoding)
-    indices = Dict()
-    index = 1
-    for scoding in selectable_codings(coding, encoding)
-        if haskey(indices, scoding)
-            push!(indices[scoding], index)
-        else
-            indices[scoding] = [index]
-        end
-    end
-    return [coding], indices
-end
-
-
-get_field_ids(entry::String) = parse.(Int, split(entry, " | "))
-get_field_ids(field_id::Int) = [field_id]
+asvector(x) = [x]
+asvector(x::AbstractVector) = x
+asvector(x::AbstractVector{<:AbstractVector}) = vcat(x...)
 
 fieldcolumns(dataset, field_id) = filter(x -> startswith(x, string(field_id)), names(dataset))
 
-function process_binary_arrayed(dataset, entry, encoding)
-    check_categorical_entries(entry)
-    phenotypes, indices = phenotypes_and_indices(entry["codings"], encoding)
+"""
+    process_binary_arrayed(dataset, fields_entry)
+"""
+function process_binary_arrayed(dataset, fields_entry)
+    # Retrieve phenotype names and mapping between codings and the
+    # phenotypes they map to
+    phenotypes = Vector{Any}(undef, size(fields_entry["phenotypes"], 1))
+    coding_to_column_indices = Dict{Any, Vector{Int}}()
+    for index in eachindex(fields_entry["phenotypes"])
+        phenotype_entry = fields_entry["phenotypes"][index]
+        phenotypes[index] = phenotype_entry["name"]
+        for coding in asvector(phenotype_entry["codings"])
+            if haskey(coding_to_column_indices, coding)
+                push!(coding_to_column_indices[coding], index)
+            else
+                coding_to_column_indices[coding] = [index]
+            end
+        end
+    end
 
+    # Output as a sparse matrix, most people are assumed to have no condition
     output = spzeros(Bool, size(dataset, 1), size(phenotypes, 1))
-    field_ids = get_field_ids(entry["field"])
 
     # This loop ensure that if the trait is declared for any of the
     # field in field_ids then it is accepted to be true
-    for field_id in field_ids
+    for field_id in asvector(fields_entry["fields"])
         field_columns = fieldcolumns(dataset, field_id)
         # Looping over the columns of the field:
         # This means that a trait is declared present
@@ -120,111 +47,106 @@ function process_binary_arrayed(dataset, entry, encoding)
         for colname in field_columns
             column = dataset[!, colname]
             for index in eachindex(column)
-                value = getindex(column, index)
-                if value !== missing && haskey(indices, value)
-                    output[index, indices[value]] .= true
+                coding = getindex(column, index)
+                if coding !== missing && haskey(coding_to_column_indices, coding)
+                    output[index, coding_to_column_indices[coding]] .= true
                 end
             end
         end
     end
-    return DataFrame(collect(output), string.(entry["field"], "_", phenotypes))
+    return DataFrame(collect(output), string.(phenotypes))
 end
 
 """
-Processing of ordinal data, only the first instance is used.
+    process_ordinal(dataset, fields_entry)
 """
-function process_ordinal(dataset, field_id)
-    colname = Symbol(field_id, "-0.0")
-    column = dataset[!, colname]
-    output = Vector{Union{Int, Missing}}(undef, size(column, 1))
-    for index in eachindex(column)
-        val = column[index] 
-        if val !== missing && val >= 0
-            output[index] = val
-        end
-    end
-    return DataFrame(NamedTuple{(colname,)}([output]))
-end
-
-"""
-Processing of continuous data, only the first instance is used.
-"""
-function process_continuous(dataset, field_id)
-    colname = Symbol(field_id, "-0.0")
-    column = dataset[!, colname]
-    output = Vector{Union{Float64, Missing}}(undef, size(column, 1))
-    for index in eachindex(column)
-        val = column[index] 
-        if val !== missing
-            output[index] = val
-        end
-    end
-    return DataFrame(NamedTuple{(colname,)}([output]))
-end
-
-"""
-Processing of integer data, only the first instance is used.
-"""
-function process_integer(dataset, field_id)
-    colname = Symbol(field_id, "-0.0")
-    return dataset[!, [colname]]
-end
-
-negative_as_missing(value::Real) = value < 0 ? missing : value
-negative_as_missing(value) = value
-negative_as_missing(column::AbstractVector) = [negative_as_missing(v) for v in column]
-
-
-function process_categorical(dataset, field_id)
-    colname = Symbol(field_id, "-0.0")
-    column = NamedTuple{(colname,)}([categorical(negative_as_missing(dataset[!, colname]))])
-    mach = machine(OneHotEncoder(), column)
-    fit!(mach, verbosity=0)
-    Xt = MLJBase.transform(mach)
-    Xt_bool = NamedTuple{keys(Xt)}([convert(Vector{Union{Bool, Missing}}, column) for column in Xt])
-    return DataFrame(Xt_bool)
-end
-
-
-missing_or_other(value::Real) = value < 0 ? missing : "OTHER"
-missing_or_other(value) = "OTHER"
-
-
-"""
-    process_categorical_treatment(dataset, entry)
-
-Only the first column `-0.0` is used to process those fields.
-"""
-function process_categorical_treatment(dataset, entry)
-    colname = entry isa Dict && haskey(entry, "field") ? 
-                Symbol(entry["field"], "-0.0") :
-                Symbol(entry, "-0.0")
-    column = dataset[!, colname]
-    if entry isa Dict && haskey(entry, "codings")
-        codings = entry["codings"]
-        mapping = Dict{Any, Any}(missing => missing)
-        for coding in codings
-            if coding isa Dict && haskey(coding, "any")
-                for elem in coding["any"]
-                    mapping[elem] = coding["name"]
+function process_ordinal(dataset, fields_entry)
+    field = only_one_field(fields_entry["fields"])
+    for phenotype_entry in fields_entry["phenotypes"]
+        operation = !haskey(phenotype_entry, "operation") ? "first" : phenotype_entry["operation"] 
+        if operation == "first"
+            column = dataset[!, Symbol(field, "-0.0")]
+            output = Vector{Union{Int, Missing}}(undef, size(column, 1))
+            for index in eachindex(column)
+                val = column[index] 
+                if val !== missing && val >= 0
+                    output[index] = val
                 end
-            else
-                mapping[coding] = coding
             end
+            return DataFrame([Symbol(phenotype_entry["name"]) => output])
+        else
+            throw(ArgumentError("Only `first` operation supported for now."))
         end
-        output = Vector{Any}(undef, size(column, 1))
-        for index in eachindex(column)
-            value = column[index]
-            if haskey(mapping, value)
-                output[index] = mapping[value]
-            else
-                output[index] = missing_or_other(value)
+    end
+end
+
+"""
+    process_continuous(dataset, fields_entry)
+"""
+function process_continuous(dataset, fields_entry)
+    field = only_one_field(fields_entry["fields"])
+    for phenotype_entry in fields_entry["phenotypes"]
+        operation = !haskey(phenotype_entry, "operation") ? "first" : phenotype_entry["operation"] 
+        if operation == "first"
+            column = dataset[!, Symbol(field, "-0.0")]
+            output = Vector{Union{Float64, Missing}}(undef, size(column, 1))
+            for index in eachindex(column)
+                val = column[index] 
+                if val !== missing
+                    output[index] = val
+                end
             end
+            return DataFrame([Symbol(phenotype_entry["name"]) => output])
+        else
+            throw(ArgumentError("Only `first` operation supported for now."))
         end
-    else
-        output = categorical(negative_as_missing(column))
+    end
+end
+
+"""
+    process_integer(dataset, fields_entry)
+"""
+function process_integer(dataset, fields_entry)
+    field = only_one_field(fields_entry["fields"])
+    for phenotype_entry in fields_entry["phenotypes"]
+        operation = !haskey(phenotype_entry, "operation") ? "first" : phenotype_entry["operation"] 
+        if operation == "first"
+            column = dataset[!, Symbol(field, "-0.0")]
+            return DataFrame([Symbol(phenotype_entry["name"]) => column])
+        else
+            throw(ArgumentError("Only `first` operation supported for now."))
+        end
     end
 
-    return DataFrame(NamedTuple{(colname,)}([output]))
+end
 
+"""
+    process_categorical(dataset, fields_entry)
+"""
+function process_categorical(dataset, fields_entry)
+    field = only_one_field(fields_entry["fields"])
+    for phenotype_entry in fields_entry["phenotypes"]
+        operation = !haskey(phenotype_entry, "operation") ? "first" : phenotype_entry["operation"] 
+        if operation == "first"
+            column = dataset[!, Symbol(field, "-0.0")]
+            output = Vector{eltype(column)}(undef, length(column))
+            for index in eachindex(column)
+                output[index] = negative_as_missing(column[index])
+            end
+            if haskey(phenotype_entry, "codings")
+                codings_output = Vector{Union{Bool, Missing}}(undef, length(column))
+                codings = asvector(phenotype_entry["codings"])
+                for index in eachindex(output)
+                    if output[index] !== missing
+                        codings_output[index] = output[index] ∈ codings
+                    end
+                end
+                return DataFrame([Symbol(phenotype_entry["name"]) => codings_output])
+            else
+                return DataFrame([Symbol(phenotype_entry["name"]) => output])
+            end
+        else
+            throw(ArgumentError("Only `first` operation supported for now."))
+        end
+    end
 end

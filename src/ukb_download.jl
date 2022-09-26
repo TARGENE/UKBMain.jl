@@ -16,6 +16,14 @@ download_fields_metadata(;output="fields_metadata.txt") =
 read_fields_metadata(;input="fields_metadata.txt") =
     CSV.read(input, DataFrame)
 
+function download_and_read_fields_metadata(;path="fields_metadata.txt")
+    if !isfile(path)
+        download_fields_metadata(;output=path)
+    end
+    return read_fields_metadata(input=path)
+end
+
+
 default_coding_path(id) = string("ukb_datacoding_", id, ".tsv")
 
 function download_datacoding(id; output=default_coding_path(id))

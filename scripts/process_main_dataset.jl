@@ -12,13 +12,17 @@ function parse_commandline()
             help = "The YAML configuration file"
             default = joinpath("config", "config.yaml")
             arg_type = String
-        "--out-prefix"
-            help = "output prefix"
+        "--out"
+            help = "output path"
             default = "processed"
             arg_type = String
         "--withdrawal-list"
             help = "Path to UKB withdrawal list"
             arg_type = String
+        "--verbosity"
+            help = "Path to UKB withdrawal list"
+            arg_type = Int
+            default = 1
     end
 
     return parse_args(s)
