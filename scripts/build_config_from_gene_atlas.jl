@@ -78,11 +78,28 @@ function update_mapping!(mapping; max_index=777)
     end
 end
 
+function process_fields_string(fields_string)
+    fields = []
+    for fieldstring in split(replace(fields_string, " " => ""), ",")
+        if endswith(fieldstring, "-0.0")
+            push!(fields, fieldstring[1:end-4])
+        else
+            push!(fields, fieldstring)
+        end
+    end
+    return fields
+end
+
+
 function data_from_mapping(mapping)
     data = []
     for (fields, group) in pairs(groupby(mapping, :UKBFields))
+        # Skipping # (46/47) and (48/49) fields
+        if occursin("/", fields.UKBFields)
+            continue
+        end
         fields_dict = Dict(
-            "fields"     => split(replace(fields.UKBFields, " " => ""), ","),
+            "fields"     => process_fields_string(fields.UKBFields),
             "phenotypes" => []
         )
         for row in eachrow(group)
