@@ -1,28 +1,18 @@
-function update_list!(fields_list, entry::Vector)
-    for field_id in entry
-        push!(fields_list, field_id)
+function update_list!(fields_list, fields::AbstractVector)
+    for field_id in fields
+        update_list!(fields_list, field_id)
     end
 end
 
-update_list!(fields_list, entry::Int) =
-    push!(fields_list, entry)
-
-function update_list!(fields_list, entry::String)
-    for field_id in parse.(Int, split(entry, " | "))
-        push!(fields_list, field_id)
-    end
-end
-
-update_list!(fields_list, entry::Dict) =
-    update_list!(fields_list, entry["field"])
-
+update_list!(fields_list, field) =
+    push!(fields_list, field)
 
 function build_fields_list(parsed_args)
     conf = YAML.load_file(parsed_args["conf"])
     fields_list = Int[]
-    for (role, entries) in conf
+    for (_, entries) in conf
         for entry in entries
-            update_list!(fields_list, entry)
+            update_list!(fields_list, entry["fields"])
         end
     end
 
