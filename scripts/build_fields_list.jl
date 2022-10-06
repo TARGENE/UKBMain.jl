@@ -7,7 +7,7 @@ function parse_commandline()
     @add_arg_table s begin
         "--conf"
             help = "The YAML configuration file"
-            default = joinpath("config", "config.yaml")
+            default = joinpath("config", "geneatlas_config.yaml")
             arg_type = String
         "--output"
             help = "output file"

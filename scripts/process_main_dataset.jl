@@ -14,7 +14,7 @@ function parse_commandline()
             arg_type = String
         "--out"
             help = "output path"
-            default = "processed"
+            default = "traits.csv"
             arg_type = String
         "--withdrawal-list"
             help = "Path to UKB withdrawal list"
