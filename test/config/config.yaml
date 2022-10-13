@@ -34,7 +34,7 @@ traits:
     phenotypes:
       - name: 1777  
   # Arrayed/Instanced traits 
-  - fields: 40006
+  - fields: "40006"
     phenotypes:
       - name: disease_1
         codings: [C439, D414, C440]

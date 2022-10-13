@@ -2,7 +2,11 @@ const ORDINAL_FIELDS = Set([
     1408, 1727, 1548, 728, 1717, 1389, 1478, 1518,
     1558, 1349, 1359, 1369, 1379, 1329, 1339, 1239, 1687, 1697,
     1319, 1498
-]) 
+])
+
+asint(x::Real) = Int(x)
+asint(x::String) = parse(Int, x)
+asint(field_ids::AbstractArray) = [asint(x) for x in field_ids]
 
 function get_fields_metadata(fields_metadata::DataFrame, field_id)
     row_id = findfirst(x -> x.field_id == field_id, eachrow(fields_metadata))
@@ -32,7 +36,7 @@ function get_fields_metadata(fields_metadata::DataFrame, field_ids::AbstractVect
 end
 
 function build_from_fields_entry(fields_entry, dataset, fields_metadata)
-    field_ids = fields_entry["fields"]
+    field_ids = asint(fields_entry["fields"])
     field_id, value_type, encoding_id = UKBMain.get_fields_metadata(fields_metadata, field_ids)
     # Ordinal data
     if field_id ∈ ORDINAL_FIELDS
@@ -84,9 +88,6 @@ function extract(dataset, field_entries, fields_metadata;verbosity=1)
     return output
 end
 
-isbinary(::Type{Union{Missing, Bool}}) = true
-isbinary(::Type{Bool}) = true
-isbinary(val) = false
 
 function filter_and_extract(parsed_args)
     v = parsed_args["verbosity"]
