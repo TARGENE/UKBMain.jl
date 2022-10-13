@@ -4,8 +4,12 @@ function update_list!(fields_list, fields::AbstractVector)
     end
 end
 
+field_as_int(field) = Int(field)
+field_as_int(field::Int) = field
+field_as_int(field::String) = parse(Int, field)
+
 update_list!(fields_list, field) =
-    push!(fields_list, field)
+    push!(fields_list, field_as_int(field))
 
 function build_fields_list(parsed_args)
     conf = YAML.load_file(parsed_args["conf"])

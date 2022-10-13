@@ -4,7 +4,7 @@ using Test
 using UKBMain
 using DelimitedFiles
 
-@testset "Test build_fields_list" begin
+@testset "Test build_fields_list: basic" begin
     parsed_args = Dict(
         "conf" => joinpath("config", "config.yaml"),
         "output" => "fields_output.txt"
@@ -43,6 +43,18 @@ using DelimitedFiles
                                 40006,
                                 20002]
      rm(parsed_args["output"])
+end
+
+@testset "Test build_fields_list: gene_atlas " begin
+   config_file = joinpath(dirname(dirname(@__FILE__)), "config", "geneatlas_config.yaml")
+   parsed_args = Dict(
+        "conf" => config_file,
+        "output" => "fields_output.txt"
+    )
+    build_fields_list(parsed_args)
+    fields_list = readdlm(parsed_args["output"], Int)
+    @test length(fields_list) == 123
+    rm(parsed_args["output"])
 end
 
 end
