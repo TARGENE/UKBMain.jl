@@ -16832,10 +16832,6 @@ traits:
     phenotypes:
       - name: "Variation in diet"
   - fields:
-      - "924"
-    phenotypes:
-      - name: "Usual walking pace"
-  - fields:
       - "728"
     phenotypes:
       - name: "Number of vehicles in household"
@@ -17148,17 +17144,9 @@ traits:
     phenotypes:
       - name: "Basal metabolic rate"
   - fields:
-      - "23104"
-    phenotypes:
-      - name: "Body mass index (BMI)"
-  - fields:
       - "23102"
     phenotypes:
       - name: "Whole body water mass"
-  - fields:
-      - "23098"
-    phenotypes:
-      - name: "Weight"
   - fields:
       - "20015"
     phenotypes:
@@ -17184,10 +17172,6 @@ traits:
     phenotypes:
       - name: "Waist circumference"
   - fields:
-      - "189"
-    phenotypes:
-      - name: "Townsend deprivation index at recruitment"
-  - fields:
       - "1319"
     phenotypes:
       - name: "Dried fruit intake"
@@ -17207,14 +17191,6 @@ traits:
       - "1299"
     phenotypes:
       - name: "Salad / raw vegetable intake"
-  - fields:
-      - "1070"
-    phenotypes:
-      - name: "Time spent watching television (TV)"
-  - fields:
-      - "904"
-    phenotypes:
-      - name: "Number of days/week of vigorous physical activity 10+ minutes"
   - fields:
       - "884"
     phenotypes:

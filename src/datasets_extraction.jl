@@ -80,12 +80,15 @@ end
 
 function extract(dataset, field_entries, fields_metadata;verbosity=1)
     output = DataFrame(SAMPLE_ID=dataset[:, :eid])
-    for fields_entry in field_entries
+    n_entries = length(field_entries)
+    outputs_dfs = Vector{DataFrame}(undef, n_entries)
+    Threads.@threads for i in 1:n_entries
+        fields_entry = field_entries[i]
         verbosity > 0 && @info "Processing fields_entry: $(fields_entry["fields"])"
         field_output = build_from_fields_entry(fields_entry, dataset, fields_metadata)
-        output = hcat(output, field_output)
+        outputs_dfs[i] = field_output
     end
-    return output
+    return output = hcat(output, outputs_dfs...)
 end
 
 

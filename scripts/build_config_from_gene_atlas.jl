@@ -5,6 +5,14 @@ using AbstractTrees
 using DataFrames
 using YAML
 
+"""
+Those fields either are duplicates or do not belong to our basket and cause problems 
+downstream in the pipeline.
+"""
+EXCUDED_FIELDS = Set([
+    "924-0.0", "23104-0.0", "23098-0.0", "189-0.0", "1070-0.0", "904-0.0", 
+])
+
 function parse_commandline()
     s = ArgParseSettings()
 
@@ -95,7 +103,8 @@ function data_from_mapping(mapping)
     data = []
     for (fields, group) in pairs(groupby(mapping, :UKBFields))
         # Skipping # (46/47) and (48/49) fields
-        if occursin("/", fields.UKBFields)
+        if occursin("/", fields.UKBFields) ||
+            fields.UKBFields ∈ EXCUDED_FIELDS
             continue
         end
         fields_dict = Dict(
