@@ -10,7 +10,7 @@ function parse_commandline()
             arg_type = String
         "--conf"
             help = "The YAML configuration file"
-            default = joinpath("config", "config.yaml")
+            default = joinpath("config", "geneatlas_config.yaml")
             arg_type = String
         "--out"
             help = "output path"
