@@ -21,11 +21,12 @@ function process_binary_arrayed(dataset, fields_entry)
     # Retrieve phenotype names and mapping between codings and the
     # phenotypes they map to
     phenotypes = Vector{Any}(undef, size(fields_entry["phenotypes"], 1))
-    coding_to_column_indices = Dict{Any, Vector{Int}}()
+    coding_to_column_indices = Dict{String, Vector{Int}}()
     for index in eachindex(fields_entry["phenotypes"])
         phenotype_entry = fields_entry["phenotypes"][index]
         phenotypes[index] = phenotype_entry["name"]
         for coding in asvector(phenotype_entry["codings"])
+            coding = string(coding)
             if haskey(coding_to_column_indices, coding)
                 push!(coding_to_column_indices[coding], index)
             else
@@ -48,7 +49,9 @@ function process_binary_arrayed(dataset, fields_entry)
             column = dataset[!, colname]
             for index in eachindex(column)
                 coding = getindex(column, index)
-                if coding !== missing && haskey(coding_to_column_indices, coding)
+                coding === missing && continue
+                coding = string(coding)
+                if haskey(coding_to_column_indices, coding)
                     output[index, coding_to_column_indices[coding]] .= true
                 end
             end
@@ -129,15 +132,18 @@ function process_categorical(dataset, fields_entry)
         operation = !haskey(phenotype_entry, "operation") ? "first" : phenotype_entry["operation"] 
         if operation == "first"
             column = dataset[!, Symbol(field, "-0.0")]
-            output = Vector{eltype(column)}(undef, length(column))
+            output = Vector{Union{String, Missing}}(missing, length(column))
             for index in eachindex(column)
-                output[index] = negative_as_missing(column[index])
+                val = negative_as_missing(column[index])
+                if val !== missing 
+                    output[index] = string(val)
+                end
             end
             if haskey(phenotype_entry, "codings")
-                codings_output = Vector{Union{Bool, Missing}}(undef, length(column))
-                codings = asvector(phenotype_entry["codings"])
+                codings_output = Vector{Union{Bool, Missing}}(missing, length(column))
+                codings = Set(string.(asvector(phenotype_entry["codings"])))
                 for index in eachindex(output)
-                    if output[index] !== missing
+                    if output[index] !== missing 
                         codings_output[index] = output[index] ∈ codings
                     end
                 end

@@ -31,5 +31,5 @@ subset:
   - fields: 21000
     phenotypes:
       - name: ethnicity
-        codings: [1001, 3002]
+        codings: [1001, "3002"]
 
