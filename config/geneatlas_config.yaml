@@ -17192,10 +17192,6 @@ traits:
     phenotypes:
       - name: "Salad / raw vegetable intake"
   - fields:
-      - "884"
-    phenotypes:
-      - name: "Number of days/week of moderate physical activity 10+ minutes"
-  - fields:
       - "1458"
     phenotypes:
       - name: "Cereal intake"
@@ -17215,10 +17211,6 @@ traits:
       - "1438"
     phenotypes:
       - name: "Bread intake"
-  - fields:
-      - "864"
-    phenotypes:
-      - name: "Number of days/week walked 10+ minutes"
   - fields:
       - "1873"
     phenotypes:
