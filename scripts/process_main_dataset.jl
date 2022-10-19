@@ -20,7 +20,7 @@ function parse_commandline()
             help = "Path to UKB withdrawal list"
             arg_type = String
         "--verbosity"
-            help = "Path to UKB withdrawal list"
+            help = "Verbosity level"
             arg_type = Int
             default = 1
     end
