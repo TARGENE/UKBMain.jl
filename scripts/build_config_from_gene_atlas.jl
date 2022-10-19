@@ -10,7 +10,7 @@ Those fields either are duplicates or do not belong to our basket and cause prob
 downstream in the pipeline.
 """
 EXCUDED_FIELDS = Set([
-    "924-0.0", "23104-0.0", "23098-0.0", "189-0.0", "1070-0.0", "904-0.0", 
+    "924-0.0", "23104-0.0", "23098-0.0", "189-0.0", "1070-0.0", "904-0.0", "884-0.0"
 ])
 
 function parse_commandline()
