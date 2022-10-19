@@ -14,6 +14,15 @@ asvector(x::AbstractVector{<:AbstractVector}) = vcat(x...)
 
 fieldcolumns(dataset, field_id) = filter(x -> startswith(x, string(field_id)), names(dataset))
 
+function update_with_coding!(output, coding, index, coding_to_column_indices)
+    coding = string(coding)
+    if haskey(coding_to_column_indices, coding)
+        output[index, coding_to_column_indices[coding]] .= true
+    end
+end
+
+update_with_coding!(output, coding::Missing, index, coding_to_column_indices) = nothing
+
 """
     process_binary_arrayed(dataset, fields_entry)
 """
@@ -36,7 +45,7 @@ function process_binary_arrayed(dataset, fields_entry)
     end
 
     # Output as a sparse matrix, most people are assumed to have no condition
-    output = spzeros(Bool, size(dataset, 1), size(phenotypes, 1))
+    output = zeros(Bool, size(dataset, 1), size(phenotypes, 1))
 
     # This loop ensure that if the trait is declared for any of the
     # field in field_ids then it is accepted to be true
@@ -49,11 +58,7 @@ function process_binary_arrayed(dataset, fields_entry)
             column = dataset[!, colname]
             for index in eachindex(column)
                 coding = getindex(column, index)
-                coding === missing && continue
-                coding = string(coding)
-                if haskey(coding_to_column_indices, coding)
-                    output[index, coding_to_column_indices[coding]] .= true
-                end
+                update_with_coding!(output, coding, index, coding_to_column_indices)
             end
         end
     end
