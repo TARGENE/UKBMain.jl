@@ -53,7 +53,7 @@ end
     )
     build_fields_list(parsed_args)
     fields_list = readdlm(parsed_args["output"], Int)
-    @test length(fields_list) == 117
+    @test length(fields_list) == 115
     rm(parsed_args["output"])
 end
 
