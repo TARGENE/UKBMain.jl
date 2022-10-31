@@ -18,8 +18,8 @@ RUN chmod +x /usr/local/bin/ukbconv
 
 # Install package
 
-COPY . /UKBMain
+COPY . /UKBMain.jl
 
-WORKDIR /UKBMain
+WORKDIR /UKBMain.jl
 
 RUN julia -q --project -e'using Pkg; Pkg.instantiate(); Pkg.resolve(); Pkg.precompile(); Pkg.test()'

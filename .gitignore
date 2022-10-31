@@ -2,3 +2,7 @@
 *.jl.cov
 *.jl.mem
 /docs/build/
+
+*Manifest.toml
+test/fields_metadata.txt
+test/ukb_datacoding_*
