@@ -1,6 +1,6 @@
 # UKBMain
 
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/TARGENE/UKBMain.jl/CI/main?label=Build%20main)
+![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/TARGENE/UKBMain.jl/CI.yml?branch=main)
 ![Codecov branch](https://img.shields.io/codecov/c/github/TARGENE/UKBMain.jl/main?label=Coverage%20main)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/TARGENE/UKBMain.jl)
 
