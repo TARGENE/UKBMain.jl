@@ -21,15 +21,18 @@ end
     parsed_args = Dict(
         "dataset" => joinpath("data", "ukb_sample_traits.csv"),
         "out" => "extracted.csv",
-        "conf" => joinpath("config", "config.yaml"),
+        "conf" => joinpath("config", "config_with_custom_fields.yaml"),
         "withdrawal-list" => nothing,
         "verbosity" => 0
     )
     
     filter_and_extract(parsed_args)
-
     traits = CSV.read(parsed_args["out"], DataFrame)
-    @test size(traits) == (10, 21)
+    @test size(traits) == (10, 23)
+
+    # Custom fields are simply pushed forward
+    @test traits.dummyfield == [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    @test traits.customfield == [1.0, 1.0, 13.0, 1.0, 1.0, 143.2, 0.3, 1.0, 1.0, 2.0]
 
     # 1707 is a categorical field
     test_column_with_missing(

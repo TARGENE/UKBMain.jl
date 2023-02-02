@@ -4,14 +4,14 @@ const ORDINAL_FIELDS = Set([
     1319, 1498
 ])
 
-asint(x::Real) = Int(x)
 asint(x::String) = parse(Int, x)
-asint(field_ids::AbstractArray) = [asint(x) for x in field_ids]
+asint(x) = Int(x)
 
 function get_fields_metadata(fields_metadata::DataFrame, field_id)
-    row_id = findfirst(x -> x.field_id == field_id, eachrow(fields_metadata))
+    row_id = findfirst(x -> x.field_id == string(field_id), eachrow(fields_metadata))
+    row_id === nothing && return nothing, nothing, nothing
     f_meta = fields_metadata[row_id, :]
-    return field_id, f_meta.value_type, f_meta.encoding_id
+    return asint(field_id), f_meta.value_type, f_meta.encoding_id
 end
 
 """
@@ -24,20 +24,25 @@ all field_ids in the list.
 function get_fields_metadata(fields_metadata::DataFrame, field_ids::AbstractVector)
     value_types = []
     encoding_ids = []
+    field_ids_ = []
     for f_id in field_ids 
-        _, value_type, encoding_id = get_fields_metadata(fields_metadata, f_id)
+        field_id, value_type, encoding_id = get_fields_metadata(fields_metadata, f_id)
+        push!(field_ids_, field_id)
         push!(value_types, value_type)
         push!(encoding_ids, encoding_id)
     end
     @assert all(==(value_types[1]), value_types)
     @assert all(==(encoding_ids[1]), encoding_ids)
     
-    return first(field_ids), first(value_types), first(encoding_ids)
+    return first(field_ids_), first(value_types), first(encoding_ids)
 end
 
 function build_from_fields_entry(fields_entry, dataset, fields_metadata)
-    field_ids = asint(fields_entry["fields"])
+    field_ids = fields_entry["fields"]
     field_id, value_type, encoding_id = UKBMain.get_fields_metadata(fields_metadata, field_ids)
+    if value_type === nothing
+        return process_custom(dataset, fields_entry)
+    end
     # Ordinal data
     if field_id ∈ ORDINAL_FIELDS
         return process_ordinal(dataset, fields_entry)
