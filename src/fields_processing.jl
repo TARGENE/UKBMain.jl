@@ -66,6 +66,14 @@ function process_binary_arrayed(dataset, fields_entry)
 end
 
 """
+    process_custom(dataset, fields_entry)
+
+Processing function for a manually added column. SImply forward the column
+"""
+process_custom(dataset, fields_entry) =
+    dataset[!, asvector(fields_entry["fields"])]
+
+"""
     process_ordinal(dataset, fields_entry)
 """
 function process_ordinal(dataset, fields_entry)

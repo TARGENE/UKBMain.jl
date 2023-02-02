@@ -14,7 +14,7 @@ download_fields_metadata(;output="fields_metadata.txt") =
     Downloads.download("biobank.ndph.ox.ac.uk/ukb/scdown.cgi?fmt=txt&id=1", output)
 
 read_fields_metadata(;input="fields_metadata.txt") =
-    CSV.read(input, DataFrame)
+    CSV.read(input, DataFrame, types=Dict("field_id" => String))
 
 function download_and_read_fields_metadata(;path="fields_metadata.txt")
     if !isfile(path)
