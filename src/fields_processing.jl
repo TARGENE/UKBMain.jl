@@ -23,6 +23,16 @@ end
 
 update_with_coding!(output, coding::Missing, index, coding_to_column_indices) = nothing
 
+maybe_convert_to_int(v, ::Type{<:AbstractFloat}) =
+    convert(Vector{Int}, v) 
+
+maybe_convert_to_int(v, ::Type{<:Union{Missing, AbstractFloat}}) =
+    convert(Vector{Union{Missing, Int}}, v) 
+
+maybe_convert_to_int(v, ::Any) = v
+
+maybe_convert_to_int(v) = maybe_convert_to_int(v, eltype(v))
+
 """
     process_binary_arrayed(dataset, fields_entry)
 """
@@ -55,7 +65,7 @@ function process_binary_arrayed(dataset, fields_entry)
         # This means that a trait is declared present
         # if it is diagnosed at any of the assessment visits
         for colname in field_columns
-            column = dataset[!, colname]
+            column = maybe_convert_to_int(dataset[!, colname])
             for index in eachindex(column)
                 coding = getindex(column, index)
                 update_with_coding!(output, coding, index, coding_to_column_indices)
