@@ -28,7 +28,7 @@ end
     
     filter_and_extract(parsed_args)
     traits = CSV.read(parsed_args["out"], DataFrame)
-    @test size(traits) == (10, 23)
+    @test size(traits) == (10, 24)
 
     # Custom fields are simply pushed forward
     @test traits.dummyfield == [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
@@ -82,7 +82,8 @@ end
         [79.5, 82.61, 81.0, 78.8, 83.16, 73.7, 81.72, 84.0, 75.34, missing]
     )
 
-    @test traits[!, "ethnicity"] == [1001, 2, 3002, 6, 1001, 1001, 1001, 1001, 1001, 4001]
+    @test traits[!, "ethnicity_1001"] == [1, 0, 0, 0, 1, 1, 1, 1, 1, 0]
+    @test traits[!, "ethnicity_3002"] == [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
 
     test_column_with_missing(
         traits[!, "genetic sex"], 
