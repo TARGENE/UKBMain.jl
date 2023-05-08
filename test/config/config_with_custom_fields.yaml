@@ -62,7 +62,10 @@ traits:
 
   - fields: 21000
     phenotypes:
-      - name: ethnicity
+      - name: ethnicity_1001
+        codings: [1001]
+      - name: ethnicity_3002
+        codings: [3002]
 
   - fields: 22001
     phenotypes:

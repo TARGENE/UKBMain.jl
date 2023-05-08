@@ -88,6 +88,7 @@ process_custom(dataset, fields_entry) =
 """
 function process_ordinal(dataset, fields_entry)
     field = only_one_field(fields_entry["fields"])
+    output_df = DataFrame()
     for phenotype_entry in fields_entry["phenotypes"]
         operation = !haskey(phenotype_entry, "operation") ? "first" : phenotype_entry["operation"] 
         if operation == "first"
@@ -99,11 +100,12 @@ function process_ordinal(dataset, fields_entry)
                     output[index] = val
                 end
             end
-            return DataFrame([Symbol(phenotype_entry["name"]) => output])
+            output_df[!, Symbol(phenotype_entry["name"])] = output
         else
             throw(ArgumentError("Only `first` operation supported for now."))
         end
     end
+    return output_df
 end
 
 """
@@ -111,6 +113,7 @@ end
 """
 function process_continuous(dataset, fields_entry)
     field = only_one_field(fields_entry["fields"])
+    output_df = DataFrame()
     for phenotype_entry in fields_entry["phenotypes"]
         operation = !haskey(phenotype_entry, "operation") ? "first" : phenotype_entry["operation"] 
         if operation == "first"
@@ -122,11 +125,12 @@ function process_continuous(dataset, fields_entry)
                     output[index] = val
                 end
             end
-            return DataFrame([Symbol(phenotype_entry["name"]) => output])
+            output_df[!, Symbol(phenotype_entry["name"])] = output
         else
             throw(ArgumentError("Only `first` operation supported for now."))
         end
     end
+    return output_df
 end
 
 """
@@ -134,16 +138,16 @@ end
 """
 function process_integer(dataset, fields_entry)
     field = only_one_field(fields_entry["fields"])
+    output_df = DataFrame()
     for phenotype_entry in fields_entry["phenotypes"]
         operation = !haskey(phenotype_entry, "operation") ? "first" : phenotype_entry["operation"] 
         if operation == "first"
-            column = dataset[!, Symbol(field, "-0.0")]
-            return DataFrame([Symbol(phenotype_entry["name"]) => column])
+            output_df[!, Symbol(phenotype_entry["name"])] = dataset[!, Symbol(field, "-0.0")]
         else
             throw(ArgumentError("Only `first` operation supported for now."))
         end
     end
-
+    return output_df
 end
 
 """
@@ -151,6 +155,7 @@ end
 """
 function process_categorical(dataset, fields_entry)
     field = only_one_field(fields_entry["fields"])
+    output_df = DataFrame()
     for phenotype_entry in fields_entry["phenotypes"]
         operation = !haskey(phenotype_entry, "operation") ? "first" : phenotype_entry["operation"] 
         if operation == "first"
@@ -170,12 +175,13 @@ function process_categorical(dataset, fields_entry)
                         codings_output[index] = output[index] ∈ codings
                     end
                 end
-                return DataFrame([Symbol(phenotype_entry["name"]) => codings_output])
+                output_df[!, Symbol(phenotype_entry["name"])] = codings_output
             else
-                return DataFrame([Symbol(phenotype_entry["name"]) => output])
+                output_df[!, Symbol(phenotype_entry["name"])] = output
             end
         else
             throw(ArgumentError("Only `first` operation supported for now."))
         end
     end
+    return output_df
 end
