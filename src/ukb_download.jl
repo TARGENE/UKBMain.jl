@@ -9,9 +9,8 @@ const CONTENT_LENGTH = Dict(
     1001 => 7,
     9 => 4
 )
-
 download_fields_metadata(;output="fields_metadata.txt") = 
-    Downloads.download("biobank.ndph.ox.ac.uk/ukb/scdown.cgi?fmt=txt&id=1", output)
+    Downloads.download("https://biobank.ndph.ox.ac.uk/ukb/scdown.cgi?fmt=txt&id=1", output)
 
 read_fields_metadata(;input="fields_metadata.txt") =
     CSV.read(input, DataFrame, types=Dict("field_id" => String))
