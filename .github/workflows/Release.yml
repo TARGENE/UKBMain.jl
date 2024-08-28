@@ -3,7 +3,6 @@ name: Publish Docker Image
 on:
   workflow_dispatch:
   release:
-    types: [published]
 
 jobs:
   push-to-registries:
