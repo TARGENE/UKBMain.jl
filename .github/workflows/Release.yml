@@ -2,10 +2,8 @@ name: Publish Docker Image
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: [TagBot]
-    types:
-      - completed
+  release:
+    types: [published]
 
 jobs:
   push-to-registries:
@@ -25,7 +23,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v5
         with:
           images: olivierlabayle/ukbmain
           tags: |
