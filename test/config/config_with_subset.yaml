@@ -1,0 +1,35 @@
+traits:
+  - fields:
+    - "1379"
+    phenotypes:
+      - name: 1379
+  - fields:
+    - 1329
+    phenotypes:
+      - name: 1329
+  - fields: 1339
+    phenotypes:
+      - name: 1339
+  # Arrayed/Instanced traits 
+  - fields: 40006
+    phenotypes:
+      - name: disease_1
+        codings: [C439, D414, C440]
+      - name: disease_2
+        codings: D487
+  - fields: 20002
+    phenotypes:
+      - name: disease_3
+        codings: 
+          - [1674, 1065, 1066, 1067]
+
+subset: 
+  - fields: 22001
+    phenotypes:
+      - name: genetic sex
+        codings: 0
+  - fields: 21000
+    phenotypes:
+      - name: ethnicity
+        codings: [1001, "3002"]
+
